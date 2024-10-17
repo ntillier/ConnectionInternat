@@ -10,3 +10,9 @@ Il est censé fonctionner sur toutes les distributions de linux.
 - Créer un fichier nommé `identifiants.txt`, avec l'identifiant fournit sur la première ligne et le mot de passe sur la deuxième ligne.
 - Rendre `script.sh` exécutable, avec la commande `chmod -x script.sh`.
 - L'exécuter, avec `./script.sh` par exemple.
+
+# Conseil
+Pour éviter de devoir se déplacer dans le répertoire du script, il est possible de créer une commande (un alias en l'occurence).
+- Créez un fichier `.bash_aliases` ([plus d'informations](https://www.cyberciti.biz/faq/create-permanent-bash-alias-linux-unix/))
+- Ajoutez la ligne `alias connect="~/chemin/acces/script.sh"`
+- Éxecutez la commande `connect` dans un terminal pour vous connecter
