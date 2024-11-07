@@ -2,7 +2,7 @@ Ce script a pour but d'automatiser la connection de l'ordinateur au réseau ethe
 Il est censé fonctionner sur toutes les distributions de linux.
 
 # Prérequis
-- Avoir cURL installé. Cela pourra être vérifié avec la commande `curl -V`
+- Avoir cURL installé. Cela pourra être vérifié avec la commande `curl -V` - elle devrait indiquer que OpenSSL est en utilisation
 - Avoir `jq` installé, pour décoder du json. La commande `jq -r '.t' <<< '{"t":1}'` est censé renvoyer `1`. ([Découvrir jq](https://jqlang.github.io/jq/))
 
 # Installation
