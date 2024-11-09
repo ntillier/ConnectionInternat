@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Variables globales
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 conf="$SCRIPT_DIR/openssl_config.cnf"
@@ -14,6 +13,7 @@ password="$(sed '2q;d' $credentials)"
 # Quelques fonctions
 login() {
     echo "Connection avec le login $1"
+
     result="$(OPENSSL_CONF="$conf" curl -s -k --tlsv1 'https://controller.access.network/portal_api.php' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data-raw "action=authenticate&login=$1&password=$2&policy_accept=false")"
 
     digest=$(jq -r '.user.passwordDigest.value' <<< "$result")
@@ -41,12 +41,12 @@ logout() {
     fi
 }
 
-# Commandes
-if [[ "$1" = "logout" ]];
-then
-    logout
-    exit 1
-fi
+cleanup() {
+    # Logout
+    logout "$username" "$digest"
+
+    echo "Processus quitté"
+}
 
 # On récupère le cookie de la session
 # Il semble que ce ne soit pas nécessaire :)
@@ -56,6 +56,8 @@ fi
 # On se connecte (en supposant que les identifiants sont corrects)
 login "$username" "$password"
 
+trap cleanup SIGINT
+
 # Refresh
 while sleep 50;
 do
@@ -64,6 +66,3 @@ do
 
 	echo "Session mise à jour."
 done
-
-# Logout
-logout "$username" "$digest"

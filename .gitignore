@@ -1,1 +1,14 @@
 identifiants.txt
+
+# Pour l'instant seulement
+src/
+Cargo.toml
+linux.sh
+
+# Pour Rust
+debug/
+target/
+
+Cargo.lock
+**/*.rs.bk
+*.pdb
