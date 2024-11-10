@@ -1,6 +1,15 @@
-
 use ratatui::{
-    buffer::Buffer, crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Layout, Position, Rect}, style::{Color, Modifier, Style, Stylize}, symbols, text::{Line, Span, Text}, widgets::{Block, Borders, HighlightSpacing, List, ListDirection, ListItem, ListState, Paragraph, StatefulWidget, Widget}, DefaultTerminal, Frame
+    buffer::Buffer,
+    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
+    layout::{Constraint, Layout, Position, Rect},
+    style::{Color, Modifier, Style, Stylize},
+    symbols,
+    text::{Line, Span, Text},
+    widgets::{
+        Block, Borders, HighlightSpacing, List, ListDirection, ListItem, ListState, Paragraph,
+        StatefulWidget, Widget,
+    },
+    DefaultTerminal, Frame,
 };
 
 // Composant d'entrée de texte
@@ -11,14 +20,14 @@ pub enum InputMode {
 
 pub enum Offset {
     Left,
-    Right
+    Right,
 }
 
 pub struct Input {
     pub label: String,
-    pub value: String,// Valeur
-    pub mode: InputMode,// Mode
-    index: usize,// Index du curseur
+    pub value: String,   // Valeur
+    pub mode: InputMode, // Mode
+    index: usize,        // Index du curseur
 }
 
 impl Input {
@@ -28,9 +37,9 @@ impl Input {
             value: String::new(),
             mode: match focus {
                 true => InputMode::Editing,
-                false => InputMode::Normal
+                false => InputMode::Normal,
             },
-            index: 0
+            index: 0,
         }
     }
 
@@ -88,14 +97,13 @@ impl Input {
             KeyCode::Enter => {
                 self.mode = InputMode::Normal;
                 return true;
-            },
+            }
             _ => {}
         }
         return false;
     }
 
     pub fn draw(&mut self, frame: &mut Frame, area: Rect) {
-
         let input = Paragraph::new(self.value.as_str())
             .style(match self.mode {
                 InputMode::Normal => Style::default(),
@@ -122,24 +130,24 @@ impl Input {
     }
 }
 
-
 // Menu
 pub struct Menu {
     title: String,
     options: Vec<String>,
-    pub state: ListState
+    pub state: ListState,
 }
 
 impl Menu {
-    pub fn new(title: &str, options: Vec<String>) ->Self {
+    pub fn new(title: &str, options: Vec<String>) -> Self {
         let mut state = ListState::default();
 
         state.select(Some(0));
 
         return Self {
-            options, state,
+            options,
+            state,
             title: title.to_string(),
-        }
+        };
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) {
@@ -154,7 +162,6 @@ impl Menu {
     }
 }
 
-
 impl Widget for &mut Menu {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
@@ -162,16 +169,17 @@ impl Widget for &mut Menu {
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY);
 
-
-        let list = List::new(self.options.iter().map(|item| {
-            ListItem::new(Line::from(Span::raw(format!("{item}"))))
-        }))
-            .block(block)
-            .style(Style::new().white())
-            .highlight_style(Style::new().bold().yellow())
-            .highlight_symbol(">> ")
-            .highlight_spacing(HighlightSpacing::Always)
-            .direction(ListDirection::TopToBottom);
+        let list = List::new(
+            self.options
+                .iter()
+                .map(|item| ListItem::new(Line::from(Span::raw(format!("{item}"))))),
+        )
+        .block(block)
+        .style(Style::new().white())
+        .highlight_style(Style::new().bold().yellow())
+        .highlight_symbol(">> ")
+        .highlight_spacing(HighlightSpacing::Always)
+        .direction(ListDirection::TopToBottom);
 
         StatefulWidget::render(list, area, buf, &mut self.state);
     }

@@ -1,10 +1,10 @@
-use std::time::Duration;
 use std::io::{stdout, Write};
+use std::time::Duration;
 
+use std::env;
 use std::fs::{self, File};
 use std::path::Path;
-use std::process::{Command, exit};
-use std::env;
+use std::process::{exit, Command};
 
 use miniserde::json::{self, Value};
 
@@ -16,7 +16,7 @@ const OPENSSL_CONFIG: &[u8] = include_bytes!("../assets/openssl_config.cnf");
 const LINUX_PATH: &str = "internat/linux.sh";
 const OPENSSL_CONFIG_PATH: &str = "internat/openssl_config.cnf";
 
-pub struct CustomClient{
+pub struct CustomClient {
     executor: Option<String>,
 }
 
@@ -27,29 +27,32 @@ fn check_extension(path: &Path, extension: &str) -> bool {
 }
 
 impl CustomClient {
-
     pub fn new(config: &Config) -> Self {
         let mut executor = None;
 
         if config.update {
             let files = vec![
                 (LINUX_PATH, LINUX_SCRIPT),
-                (OPENSSL_CONFIG_PATH, OPENSSL_CONFIG)
+                (OPENSSL_CONFIG_PATH, OPENSSL_CONFIG),
             ];
 
             for &(path, content) in files.iter() {
                 let path = env::temp_dir().join(path);
                 fs::create_dir_all(path.parent().unwrap()).unwrap();
 
-                let mut file = File::create(&path).expect("[ERREUR]: Impossible de créer le fichier.\n");
+                let mut file =
+                    File::create(&path).expect("[ERREUR]: Impossible de créer le fichier.\n");
                 file.write_all(content).unwrap();
 
                 #[cfg(unix)]
                 if check_extension(&path, "sh") {
                     use std::os::unix::fs::PermissionsExt;
-                    let mut perms = fs::metadata(&path).expect("[ERREUR]: Impossible d'accéder à l'exécutable.\n").permissions();
+                    let mut perms = fs::metadata(&path)
+                        .expect("[ERREUR]: Impossible d'accéder à l'exécutable.\n")
+                        .permissions();
                     perms.set_mode(0o755); // Allow execute permissions
-                    fs::set_permissions(&path, perms).expect("[ERREUR]: Impossible de changer les permission.\n");
+                    fs::set_permissions(&path, perms)
+                        .expect("[ERREUR]: Impossible de changer les permission.\n");
                 }
             }
         }
@@ -59,9 +62,7 @@ impl CustomClient {
             executor = Some(LINUX_PATH.to_string());
         }
 
-        return Self {
-            executor
-        };
+        return Self { executor };
     }
 
     fn request(&self, url: &str, method: &str, headers: &str, body: &str) -> (bool, String) {
@@ -70,13 +71,17 @@ impl CustomClient {
 
             if path.exists() {
                 let output = Command::new("sh")
-                        .arg(path.as_os_str().to_str().expect("[ERREUR]: Impossible d'exécuter la requête."))
-                        .arg(url)
-                        .arg(method)
-                        .arg(headers)
-                        .arg(body)
-                        .output()
-                        .expect("[ERREUR]: Impossible d'exécuter le script.\n");
+                    .arg(
+                        path.as_os_str()
+                            .to_str()
+                            .expect("[ERREUR]: Impossible d'exécuter la requête."),
+                    )
+                    .arg(url)
+                    .arg(method)
+                    .arg(headers)
+                    .arg(body)
+                    .output()
+                    .expect("[ERREUR]: Impossible d'exécuter le script.\n");
 
                 if output.status.success() {
                     return (true, String::from_utf8_lossy(&output.stdout).to_string());
@@ -92,7 +97,10 @@ impl CustomClient {
             "https://controller.access.network/portal_api.php",
             "POST",
             "Content-Type: application/x-www-form-urlencoded",
-            &format!("action=authenticate&login={}&password={}&policy_accept=false", username, password)
+            &format!(
+                "action=authenticate&login={}&password={}&policy_accept=false",
+                username, password
+            ),
         );
 
         let value: Value = json::from_str(&result).expect("[ERREUR]: Impossible de parser le json");

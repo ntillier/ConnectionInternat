@@ -2,7 +2,7 @@
 # exit on error
 set -o errexit
 set -o pipefail
-        set -o nounset
+set -o nounset
 set -e
 
 # Check if the crypto/tls/tls.bak folder exists
@@ -29,4 +29,3 @@ GOOS=darwin GOARCH=amd64 go1.8.1 build -o ./binaries/back-darwin-amd64 -a main.g
 
 echo "Building amd64-windows"
 GOOS=windows GOARCH=amd64 go1.8.1 build -o ./binaries/back-windows-amd64.exe -a main.go
-
