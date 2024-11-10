@@ -1,5 +1,5 @@
-use std::process::{Command, Stdio};
 use std::io::{self, Read};
+use std::process::{Command, Stdio};
 
 fn call_curl(url: &str) -> io::Result<()> {
     let mut curl_cmd = Command::new("curl")

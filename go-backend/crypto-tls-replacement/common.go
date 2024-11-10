@@ -427,9 +427,9 @@ type Config struct {
 	GetPSKIdentityHint func() ([]byte, error)
 	// PSK Client Function to choose the identity to send to the server
 	// RFC 4279 5.1 insists the identity is utf8
-	GetPSKIdentity     func(identityHint []byte) (string, error)
+	GetPSKIdentity func(identityHint []byte) (string, error)
 	// PSK function used by the client and the server to get the PSK
-	GetPSKKey          func(identity string) ([]byte, error)
+	GetPSKKey func(identity string) ([]byte, error)
 
 	// RootCAs defines the set of root certificate authorities
 	// that clients use when verifying server certificates.

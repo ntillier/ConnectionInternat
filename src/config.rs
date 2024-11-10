@@ -1,6 +1,6 @@
-use std::fs::File;
-use std::io::{self, BufRead, prelude::*};
 use std::env;
+use std::fs::File;
+use std::io::{self, prelude::*, BufRead};
 use std::path::Path;
 
 const CONFIG_PATH: &str = "config.txt";
@@ -10,7 +10,7 @@ pub struct Config {
     pub update: bool,
     pub version: String,
     pub username: String,
-    pub password: String
+    pub password: String,
 }
 
 fn create_config(path: &Path) {
@@ -28,7 +28,8 @@ impl Config {
         let config_path = env::temp_dir().join(CONFIG_PATH);
 
         if config_path.exists() {
-            let file = File::open(&config_path).expect("[ERREUR]: Impossible de lire la configuration.\n");
+            let file =
+                File::open(&config_path).expect("[ERREUR]: Impossible de lire la configuration.\n");
             let mut index = 0;
 
             for line in io::BufReader::new(file).lines().flatten() {
@@ -39,13 +40,13 @@ impl Config {
                             create_config(&config_path);
                             break;
                         }
-                    },
+                    }
                     1 => {
                         username = line;
-                    },
+                    }
                     2 => {
                         password = line;
-                    },
+                    }
                     _ => {
                         break;
                     }
@@ -57,8 +58,10 @@ impl Config {
         }
 
         Self {
-            update, username, password,
-            version: VERSION.to_string()
+            update,
+            username,
+            password,
+            version: VERSION.to_string(),
         }
     }
 
@@ -66,8 +69,12 @@ impl Config {
         let config_path = env::temp_dir().join(CONFIG_PATH);
 
         if config_path.exists() {
-            let mut file = File::create(&config_path).expect("[ERREUR]: Impossible de sauvegarder la configuration - 0.\n");
-            file.write_all(format!("{}\n{}\n{}\n", VERSION, self.username, self.password).as_bytes()).expect("[ERREUR]: Impossible de sauvegarder la configuration - 1.\n");
+            let mut file = File::create(&config_path)
+                .expect("[ERREUR]: Impossible de sauvegarder la configuration - 0.\n");
+            file.write_all(
+                format!("{}\n{}\n{}\n", VERSION, self.username, self.password).as_bytes(),
+            )
+            .expect("[ERREUR]: Impossible de sauvegarder la configuration - 1.\n");
         } else {
             create_config(&config_path);
         }
