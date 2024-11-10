@@ -1,9 +1,10 @@
 identifiants.txt
 
 # Pour l'instant seulement
-src/
-Cargo.toml
-linux.sh
+#src/
+#Cargo.toml
+#linux.sh
+backend/
 
 # Pour Rust
 debug/
