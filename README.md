@@ -1,6 +1,8 @@
 Ce script a pour but d'automatiser la connection de l'ordinateur au réseau ethernet du lycée. Étant donné que le routeur utilise le protocol TSL 1.1, qui n'est plus supporté par les dernières versions de navigateurs, ce script permet de dépasser ce problème en se connectant automatiquement au réseau lorsqu'il est appelé.
 Il est censé fonctionner sur toutes les distributions de linux.
 
+> Note: Quelques changements majeurs sont actuellement en cours, afin d'intégrer plus de fonctionnalités et de le porter sur Windows.
+
 # Prérequis
 
 - Avoir cURL installé. Cela pourra être vérifié avec la commande `curl -V` - elle devrait indiquer que OpenSSL est en utilisation
