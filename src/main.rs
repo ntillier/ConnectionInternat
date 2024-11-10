@@ -3,11 +3,10 @@ use chrono::{Date, DateTime, Local, Utc};
 use core::panic;
 use std::borrow::Borrow;
 use std::fmt::format;
-use std::io::{self, BufReader, Read};
+use std::io::{self, BufReader};
 use std::io::{BufRead, Write};
 use std::process::{Command, Stdio};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
-use wait_timeout::ChildExt;
 
 use config::Config;
 use ratatui::{
@@ -79,7 +78,8 @@ struct App {
     // Paramètre de l'écran d'accueil
     menu: Menu,
     // first element is the last connection status where this was updated: if it's different from current status, it probably needs to be changed
-    status_menu: (ConnectionStatus, Menu),
+    status: ConnectionStatus,
+    status_menu: Menu,
 
     value: String,
 }
@@ -129,10 +129,8 @@ impl App {
             password_component: Input::new("Mot de passe", false),
 
             menu: home_menu,
-            status_menu: (
-                ConnectionStatus::Uninitialized,
-                Menu::new("Actions", vec!["Se déconnecter".to_string()]),
-            ),
+            status: ConnectionStatus::Uninitialized,
+            status_menu: Menu::new("Actions", vec!["Se déconnecter".to_string()]),
 
             value: String::new(),
         }
@@ -230,34 +228,30 @@ impl App {
             .patch_style(Style::default().add_modifier(Modifier::RAPID_BLINK));
         let help_message = Paragraph::new(text);
 
-        if self.status_menu.0 != self.connected {
+        if self.status != self.connected {
             match self.connected {
                 ConnectionStatus::Connected => {
-                    self.status_menu = (
-                        ConnectionStatus::Connected,
-                        Menu::new("Actions", vec!["Se déconnecter".to_string()]),
-                    );
+                    self.status= ConnectionStatus::Connected;
                 }
                 ConnectionStatus::Disconnected => {
-                    self.status_menu = (
-                        ConnectionStatus::Disconnected,
-                        Menu::new(
-                            "Actions",
-                            vec![
-                                "Essayer de se reconnecter".to_string(),
-                                "Se déconnecter".to_string(),
-                            ],
-                        ),
+                    self.status= ConnectionStatus::Disconnected;
+                    self.status_menu = Menu::new(
+                        "Actions",
+                        vec![
+                            "Essayer de se reconnecter".to_string(),
+                            "Se déconnecter".to_string(),
+                        ],
                     );
                 }
                 ConnectionStatus::Connecting => {
-                    self.status_menu = (ConnectionStatus::Connecting, Menu::new("Actions", vec![]));
+                    self.status = ConnectionStatus::Connecting;
+                    self.status_menu = Menu::new("Actions", vec![]);
                 }
                 ConnectionStatus::Uninitialized => {}
             }
         }
 
-        frame.render_widget(&mut self.status_menu.1, menu_area);
+        frame.render_widget(&mut self.status_menu, menu_area);
     }
 
     fn draw_disconnect(&mut self, frame: &mut Frame, area: Rect) {
@@ -277,7 +271,7 @@ impl App {
             Screen::Home => {
                 if (key.kind == KeyEventKind::Press) {
                     match key.code {
-                        KeyCode::Char('q') | KeyCode::Esc => self.screen = Screen::Exit,
+                        KeyCode::Char('q') => self.screen = Screen::Exit,
                         KeyCode::Enter => {
                             if let Some(index) = self.menu.state.selected() {
                                 if self.config.username != "" && self.config.password != "" {
@@ -293,7 +287,11 @@ impl App {
                                         self.config.username = "".to_string();
                                         self.config.password = "".to_string();
                                         self.config.save();
-                                        self.screen = Screen::Exit;
+
+                                        self.menu = Menu::new("Actions", vec![
+                                            "Rentrer ses identifiants".to_string(),
+                                            "Quitter".to_string(),
+                                        ]);
                                     } else {
                                         self.screen = Screen::Exit;
                                     }
@@ -366,7 +364,9 @@ impl App {
                                 }
                             }
                         }
-                        _ => {}
+                        _ => {
+                            self.status_menu.handle_key(key);
+                        }
                     }
                 }
             }
@@ -472,7 +472,7 @@ impl App {
             Screen::Disconnect => {
                 self.draw_disconnect(frame, inner_screen_area);
             }
-            _ => {}
+            Screen::Exit => {}
         }
     }
 
@@ -520,9 +520,6 @@ impl App {
             }
 
             if (self.screen == Screen::Exit) {
-                if self.connected == ConnectionStatus::Connected {
-                    self.disconnect();
-                }
                 return Ok(());
             }
         }
@@ -546,22 +543,22 @@ impl App {
             return Err("Failed to obtain stdin".to_string());
         }
 
-        let timeout = std::time::Duration::from_secs(20);
-        let output_code = match child.wait_timeout(timeout).unwrap() {
-            Some(status) => status.code(),
-            None => {
-                child.kill().unwrap();
-                child.wait().unwrap().code()
-            }
-        };
+        let reader = BufReader::new(
+            child
+                .stdout
+                .take()
+                .unwrap_or_else(|| panic!("Failed to obtain stdout of program")),
+        );
 
-        let mut stdout = String::new();
-        if child.stdout.is_none() {
-            return Err("Failed to obtain stdout".to_string());
-        }
-        child.stdout.unwrap().read_to_string(&mut stdout).unwrap();
+        let stdout: String = reader
+            .lines()
+            .map(|line| line.expect("Failed to read line"))
+            .collect::<Vec<_>>()
+            .join("\n");
 
-        if output_code == Some(0) {
+        let output = child.wait().expect("Failed to wait on child");
+
+        if output.success() {
             Ok(stdout)
         } else {
             Err(stdout)
@@ -591,6 +588,8 @@ impl App {
                 self.config.username = self.username.clone().unwrap();
                 self.config.password = self.password.clone().unwrap();
                 self.config.save();
+
+                self.screen = Screen::Status;
             }
             Err(output) => {
                 self.connected = ConnectionStatus::Disconnected;
@@ -627,7 +626,6 @@ impl App {
             self.passwordDigest.clone().unwrap_or(String::new()),
         ];
         self.call_backend(args);
-        self.connected = ConnectionStatus::Disconnected;
         self.screen = Screen::Exit;
     }
 
