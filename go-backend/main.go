@@ -45,6 +45,8 @@ func main() {
 		args[i] = scanner.Text()
 	}
 
+	err = nil
+
 	reqType := args[0]
 	switch reqType {
 	case "login":
@@ -54,7 +56,7 @@ func main() {
 			return
 		}
 		client := Client{}
-		client.Login(args[1], args[2])
+		err = client.Login(args[1], args[2])
 		break
 	case "logout", "ping":
 		if n != 3 {
@@ -64,13 +66,17 @@ func main() {
 		}
 		client := Client{}
 		if reqType == "logout" {
-			client.Logout(args[1], args[2])
+			err = client.Logout(args[1], args[2])
 		} else if reqType == "ping" {
-			client.Ping(args[1], args[2])
+			err = client.Ping(args[1], args[2])
 		}
 		break
 	default:
 		fmt.Println("invalid request type")
+		os.Exit(1)
+		return
+	}
+	if err != nil {
 		os.Exit(1)
 		return
 	}
@@ -227,6 +233,11 @@ func (c *Client) Login(username string, password string) error {
 	// check that the stuff is actually defined till the password digest
 	username = loginResponse.User.Login.Value
 	passwordDigest := loginResponse.User.PasswordDigest.Value
+
+	if username == "" || passwordDigest == "" {
+		fmt.Println("Identifiants incorrects")
+		return fmt.Errorf("Identifiants incorrects")
+	}
 
 	fmt.Println(username)
 	fmt.Println(passwordDigest)

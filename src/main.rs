@@ -1,5 +1,12 @@
 #![allow(warnings)]
-use std::io;
+use chrono::{Date, DateTime, Local, Utc};
+use core::panic;
+use std::borrow::Borrow;
+use std::fmt::format;
+use std::io::{self, BufReader};
+use std::io::{BufRead, Write};
+use std::process::{Command, Stdio};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use config::Config;
 use ratatui::{
@@ -11,7 +18,7 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{
         Block, Borders, HighlightSpacing, List, ListDirection, ListItem, ListState, Paragraph,
-        StatefulWidget, Widget,
+        StatefulWidget, Widget, Wrap,
     },
     DefaultTerminal, Frame,
 };
@@ -20,10 +27,8 @@ use tui_big_text::{BigText, PixelSize};
 
 mod components;
 mod config;
-mod network;
 
 use components::{Input, InputMode, Menu, Offset};
-use network::CustomClient;
 //use reqwest::Result;
 
 enum Step {
@@ -35,20 +40,35 @@ enum Step {
 enum Screen {
     Home,
     Credentials,
+    Status,
+    Disconnect,
 
     Exit,
+}
+
+#[derive(PartialEq)]
+enum ConnectionStatus {
+    Uninitialized,
+    Connected,
+    Disconnected,
+    Connecting,
 }
 
 struct App {
     // Paramètres généraux
     config: Config,
-    client: CustomClient,
 
     // Paramètres de l'application
     screen: Screen,
     username: Option<String>,
     password: Option<String>,
-    connected: bool,
+    passwordDigest: Option<String>,
+    connected: ConnectionStatus,
+    lastLogin: Option<String>,
+    lastPingAttempt: Option<DateTime<Local>>,
+    lastPingTimestamp: Option<DateTime<Local>>,
+    backendPath: String,
+    lastError: Option<String>,
 
     // Paramètre de l'entrée des identifiants
     step: Step,
@@ -57,36 +77,73 @@ struct App {
 
     // Paramètre de l'écran d'accueil
     menu: Menu,
+    // first element is the last connection status where this was updated: if it's different from current status, it probably needs to be changed
+    status_menu: (ConnectionStatus, Menu),
 
     value: String,
 }
+
+const TICK_RATE: u64 = 1000;
+const PING_INTERVAL: i64 = 50;
+const DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
 impl App {
     fn new() -> Self {
         let config = Config::init();
         config.save();
 
-        let client = CustomClient::new(&config);
+        let home_menu = Menu::new(
+            "Actions",
+            if config.password != "" && config.username != "" {
+                vec![
+                    format!("Se connecter (en tant que {})", config.username).to_string(),
+                    "Rentrer ses identifiants".to_string(),
+                    "Quitter".to_string(),
+                ]
+            } else {
+                vec![
+                    "Rentrer ses identifiants".to_string(),
+                    "Quitter".to_string(),
+                ]
+            },
+        );
 
         Self {
             config,
-            client,
 
             screen: Screen::Home,
             username: None,
             password: None,
-            connected: false,
+            passwordDigest: None,
+            connected: ConnectionStatus::Uninitialized,
+            lastLogin: None,
+            lastPingAttempt: None,
+            lastPingTimestamp: None,
+            backendPath: String::from("./go-backend/binaries/back-linux-amd64"),
+            lastError: None,
 
             step: Step::Username,
             username_component: Input::new("Identifiant", true),
             password_component: Input::new("Mot de passe", false),
 
-            menu: Menu::new(
-                "Actions",
-                vec!["Se connecter".to_string(), "Quitter".to_string()],
+            menu: home_menu,
+            status_menu: (
+                ConnectionStatus::Uninitialized,
+                Menu::new("Actions", vec!["Se déconnecter".to_string()]),
             ),
 
             value: String::new(),
+        }
+    }
+
+    fn on_tick(&mut self) {
+        if !matches!(self.connected, ConnectionStatus::Uninitialized)
+            && !self.passwordDigest.is_none()
+        {
+            let seconds = seconds_since(self.lastPingAttempt).unwrap_or(0);
+            if seconds >= PING_INTERVAL {
+                self.ping()
+            }
         }
     }
 
@@ -109,7 +166,100 @@ impl App {
         frame.render_widget(&mut self.menu, list_area);
     }
 
-    fn handle_events(&mut self, key: KeyEvent) {
+    fn draw_status(&mut self, frame: &mut Frame, area: Rect) {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            // .margin(1)
+            .constraints([Constraint::Min(0), Constraint::Min(0), Constraint::Min(0)])
+            .split(area);
+        let (status_area, menu_area) = (chunks[0], chunks[1]);
+
+        let last_ping = match &self.lastPingTimestamp {
+            Some(date) => {
+                if !matches!(self.connected, ConnectionStatus::Connected)
+                    && !self.lastPingAttempt.is_none()
+                {
+                    format!(
+                        "{} (il y a {}s) (essai il y a {}s)",
+                        date.format(DATE_FORMAT).to_string(),
+                        seconds_since(self.lastPingTimestamp).unwrap_or(0),
+                        seconds_since(self.lastPingAttempt).unwrap()
+                    )
+                } else {
+                    format!(
+                        "{} (il y a {} secondes)",
+                        date.format(DATE_FORMAT).to_string(),
+                        seconds_since(self.lastPingTimestamp).unwrap_or(0)
+                    )
+                }
+            }
+            None => "N/A".to_string(),
+        };
+
+        let status = match self.connected {
+            ConnectionStatus::Uninitialized => "Non initialise".green(),
+            ConnectionStatus::Connected => "Connecté".green(),
+            ConnectionStatus::Disconnected => "Déconnecté".red(),
+            ConnectionStatus::Connecting => "Connexion en cours...".yellow(),
+        };
+
+        let error: String = match &self.lastError {
+            Some(error) => format!("Error: {}", error),
+            None => "".to_string(),
+        };
+
+        let status_text = Text::from(vec![
+            Line::from(format!("Statut: {}", status)),
+            Line::from(format!(
+                "Dernier login: {}",
+                self.lastLogin.as_ref().unwrap_or(&"N/A".to_string())
+            )),
+            Line::from(format!("Dernier ping: {}", last_ping)),
+            Line::from(error),
+        ]);
+        let status_paragraph = Paragraph::new(status_text)
+            .alignment(Alignment::Center)
+            .wrap(Wrap { trim: true });
+
+        frame.render_widget(status_paragraph, status_area);
+
+        // Render menu
+        let text = Text::from(Line::from("Que souhaitez vous faire ?"))
+            .patch_style(Style::default().add_modifier(Modifier::RAPID_BLINK));
+        let help_message = Paragraph::new(text);
+
+        if self.status_menu.0 != self.connected {
+            match self.connected {
+                ConnectionStatus::Connected => {
+                    self.status_menu = (
+                        ConnectionStatus::Connected,
+                        Menu::new("Actions", vec!["Se déconnecter".to_string()]),
+                    );
+                }
+                ConnectionStatus::Disconnected => {
+                    self.status_menu = (
+                        ConnectionStatus::Disconnected,
+                        Menu::new("Actions", vec!["Se reconnecter".to_string()]),
+                    );
+                }
+                ConnectionStatus::Connecting => {
+                    self.status_menu = (ConnectionStatus::Connecting, Menu::new("Actions", vec![]));
+                }
+                ConnectionStatus::Uninitialized => {}
+            }
+        }
+
+        frame.render_widget(&mut self.status_menu.1, menu_area);
+    }
+
+    fn draw_disconnect(&mut self, frame: &mut Frame, area: Rect) {
+        let text = Text::from(Line::from("Déconnexion en cours...").bold());
+        let widget = Paragraph::new(text).alignment(Alignment::Center);
+
+        frame.render_widget(widget, area);
+    }
+
+    fn handle_key_events(&mut self, key: KeyEvent) {
         if (key.kind == KeyEventKind::Press && key.code == KeyCode::Esc) {
             self.screen = Screen::Exit;
             return;
@@ -122,10 +272,24 @@ impl App {
                         KeyCode::Char('q') | KeyCode::Esc => self.screen = Screen::Exit,
                         KeyCode::Enter => {
                             if let Some(index) = self.menu.state.selected() {
-                                if index == 0 {
-                                    self.screen = Screen::Credentials;
+                                if self.config.username != "" && self.config.password != "" {
+                                    if index == 0 {
+                                        self.username = Some(self.config.username.clone());
+                                        self.password = Some(self.config.password.clone());
+                                        self.screen = Screen::Status;
+
+                                        self.login();
+                                    } else if index == 1 {
+                                        self.screen = Screen::Credentials;
+                                    } else {
+                                        self.screen = Screen::Exit;
+                                    }
                                 } else {
-                                    self.screen = Screen::Exit;
+                                    if index == 0 {
+                                        self.screen = Screen::Credentials;
+                                    } else {
+                                        self.screen = Screen::Exit;
+                                    }
                                 }
                             }
                         }
@@ -154,9 +318,34 @@ impl App {
                                 self.username = Some(self.username_component.value.clone());
                                 self.password = Some(self.password_component.value.clone());
 
-                                self.screen = Screen::Home;
+                                self.screen = Screen::Status;
+                                self.login();
                             }
                         };
+                    }
+                }
+            }
+            Screen::Status => {
+                if (key.kind == KeyEventKind::Press) {
+                    match key.code {
+                        KeyCode::Char('q') | KeyCode::Esc => {
+                            self.screen = if matches!(self.connected, ConnectionStatus::Connected) {
+                                Screen::Disconnect
+                            } else {
+                                Screen::Exit
+                            };
+                            self.disconnect();
+                        }
+                        KeyCode::Enter => {}
+                        _ => {}
+                    }
+                }
+            }
+            Screen::Disconnect => {
+                if (key.kind == KeyEventKind::Press) {
+                    match key.code {
+                        KeyCode::Char('q') | KeyCode::Esc => self.screen = Screen::Exit,
+                        _ => {}
                     }
                 }
             }
@@ -249,11 +438,20 @@ impl App {
             Screen::Credentials => {
                 self.draw_credentials(frame, inner_screen_area);
             }
+            Screen::Status => {
+                self.draw_status(frame, inner_screen_area);
+            }
+            Screen::Disconnect => {
+                self.draw_disconnect(frame, inner_screen_area);
+            }
             _ => {}
         }
     }
 
     fn run(mut self, mut terminal: DefaultTerminal) -> io::Result<()> {
+        let mut last_tick = Instant::now();
+        let tick_rate = std::time::Duration::from_millis(TICK_RATE);
+
         loop {
             terminal.draw(|frame| {
                 let outer_block = Block::default()
@@ -276,16 +474,135 @@ impl App {
                 self.render(frame)
             })?;
 
-            //terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            let timeout = tick_rate.saturating_sub(last_tick.elapsed());
 
-            if let Event::Key(key) = event::read()? {
-                self.handle_events(key);
+            //terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if event::poll(timeout)? {
+                match event::read()? {
+                    Event::Key(key) => {
+                        self.handle_key_events(key);
+                    }
+                    _ => {}
+                }
+            }
+
+            if last_tick.elapsed() >= tick_rate {
+                self.on_tick();
+                last_tick = Instant::now();
             }
 
             if (self.screen == Screen::Exit) {
                 return Ok(());
             }
         }
+    }
+
+    fn call_backend(&mut self, args: Vec<String>) -> Result<String, String> {
+        let count = args.len();
+        let input_data = format!("{}\n{}", count, args.join("\n"));
+
+        let mut child = Command::new(self.backendPath.clone())
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("failed to execute child process");
+
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin
+                .write_all(input_data.as_bytes())
+                .expect("Failed to write to stdin");
+        } else {
+            return Err("Failed to obtain stdin".to_string());
+        }
+
+        let reader = BufReader::new(
+            child
+                .stdout
+                .take()
+                .unwrap_or_else(|| panic!("Failed to obtain stdout of program")),
+        );
+
+        let stdout: String = reader
+            .lines()
+            .map(|line| line.expect("Failed to read line"))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let output = child.wait().expect("Failed to wait on child");
+
+        if output.success() {
+            Ok(stdout)
+        } else {
+            Err(stdout)
+        }
+    }
+
+    fn login(&mut self) {
+        let username = self.username.as_ref().unwrap();
+        let password = self.password.as_ref().unwrap();
+
+        let args = vec!["login".to_string(), username.clone(), password.clone()];
+
+        self.connected = ConnectionStatus::Connecting;
+
+        match self.call_backend(args) {
+            Ok(output) => {
+                self.connected = ConnectionStatus::Connected;
+                self.lastPingTimestamp = Some(Local::now());
+                self.lastPingAttempt = Some(Local::now());
+                self.lastError = None;
+                self.lastLogin = Some(Local::now().format(DATE_FORMAT).to_string());
+
+                // second line is the digest
+                self.passwordDigest = output.lines().nth(1).map(|s| s.to_string());
+
+                self.config.username = self.username.clone().unwrap();
+                self.config.password = self.password.clone().unwrap();
+                self.config.save();
+            }
+            Err(output) => {
+                self.connected = ConnectionStatus::Disconnected;
+                self.lastError = Some(output);
+            }
+        }
+    }
+
+    fn ping(&mut self) {
+        self.lastPingAttempt = Some(Local::now());
+
+        let args = vec![
+            "ping".to_string(),
+            self.username.clone().unwrap_or(String::new()),
+            self.passwordDigest.clone().unwrap_or(String::new()),
+        ];
+        match self.call_backend(args) {
+            Ok(_) => {
+                self.lastPingTimestamp = Some(Local::now());
+                self.lastError = None;
+                self.connected = ConnectionStatus::Connected;
+            }
+            Err(output) => {
+                self.connected = ConnectionStatus::Disconnected;
+                self.lastError = Some(output);
+            }
+        }
+    }
+
+    fn disconnect(&mut self) {
+        let args = vec![
+            "logout".to_string(),
+            self.username.clone().unwrap_or(String::new()),
+            self.passwordDigest.clone().unwrap_or(String::new()),
+        ];
+        self.call_backend(args);
+        self.screen = Screen::Exit;
+    }
+
+    fn reconnect(&mut self) {
+        self.connected = ConnectionStatus::Connecting;
+        self.passwordDigest = None;
+
+        self.login();
     }
 }
 
@@ -295,4 +612,13 @@ fn main() -> io::Result<()> {
     let app_result = App::new().run(terminal);
     ratatui::restore();
     app_result
+}
+
+fn seconds_since(ts: Option<DateTime<Local>>) -> Option<i64> {
+    if ts.is_none() {
+        return None;
+    }
+    let now = Local::now();
+    let duration = now.signed_duration_since(ts.unwrap());
+    Some(duration.num_seconds())
 }
