@@ -412,11 +412,10 @@ impl App {
         ])
         .split(frame.area());
 
-        let [_, header_area, _, screen_area, footer_area] = Layout::vertical([
+        let [_, header_area, screen_area, footer_area] = Layout::vertical([
             Constraint::Length(1),
             Constraint::Length(4),
-            Constraint::Length(1),
-            Constraint::Min(8),
+            Constraint::Fill(1),
             Constraint::Length(1),
         ])
         .areas(chunks[1]);
