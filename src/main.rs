@@ -3,10 +3,11 @@ use chrono::{Date, DateTime, Local, Utc};
 use core::panic;
 use std::borrow::Borrow;
 use std::fmt::format;
-use std::io::{self, BufReader};
+use std::io::{self, BufReader, Read};
 use std::io::{BufRead, Write};
 use std::process::{Command, Stdio};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use wait_timeout::ChildExt;
 
 use config::Config;
 use ratatui::{
@@ -519,6 +520,9 @@ impl App {
             }
 
             if (self.screen == Screen::Exit) {
+                if self.connected == ConnectionStatus::Connected {
+                    self.disconnect();
+                }
                 return Ok(());
             }
         }
@@ -542,22 +546,22 @@ impl App {
             return Err("Failed to obtain stdin".to_string());
         }
 
-        let reader = BufReader::new(
-            child
-                .stdout
-                .take()
-                .unwrap_or_else(|| panic!("Failed to obtain stdout of program")),
-        );
+        let timeout = std::time::Duration::from_secs(20);
+        let output_code = match child.wait_timeout(timeout).unwrap() {
+            Some(status) => status.code(),
+            None => {
+                child.kill().unwrap();
+                child.wait().unwrap().code()
+            }
+        };
 
-        let stdout: String = reader
-            .lines()
-            .map(|line| line.expect("Failed to read line"))
-            .collect::<Vec<_>>()
-            .join("\n");
+        let mut stdout = String::new();
+        if child.stdout.is_none() {
+            return Err("Failed to obtain stdout".to_string());
+        }
+        child.stdout.unwrap().read_to_string(&mut stdout).unwrap();
 
-        let output = child.wait().expect("Failed to wait on child");
-
-        if output.success() {
+        if output_code == Some(0) {
             Ok(stdout)
         } else {
             Err(stdout)
@@ -623,6 +627,7 @@ impl App {
             self.passwordDigest.clone().unwrap_or(String::new()),
         ];
         self.call_backend(args);
+        self.connected = ConnectionStatus::Disconnected;
         self.screen = Screen::Exit;
     }
 
