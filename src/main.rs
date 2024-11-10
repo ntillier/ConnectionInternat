@@ -98,6 +98,7 @@ impl App {
                 vec![
                     format!("Se connecter (en tant que {})", config.username).to_string(),
                     "Rentrer ses identifiants".to_string(),
+                    "Oublier les identifiants sauvegardés".to_string(),
                     "Quitter".to_string(),
                 ]
             } else {
@@ -239,7 +240,13 @@ impl App {
                 ConnectionStatus::Disconnected => {
                     self.status_menu = (
                         ConnectionStatus::Disconnected,
-                        Menu::new("Actions", vec!["Se reconnecter".to_string()]),
+                        Menu::new(
+                            "Actions",
+                            vec![
+                                "Essayer de se reconnecter".to_string(),
+                                "Se déconnecter".to_string(),
+                            ],
+                        ),
                     );
                 }
                 ConnectionStatus::Connecting => {
@@ -281,6 +288,11 @@ impl App {
                                         self.login();
                                     } else if index == 1 {
                                         self.screen = Screen::Credentials;
+                                    } else if index == 2 {
+                                        self.config.username = "".to_string();
+                                        self.config.password = "".to_string();
+                                        self.config.save();
+                                        self.screen = Screen::Exit;
                                     } else {
                                         self.screen = Screen::Exit;
                                     }
@@ -336,7 +348,23 @@ impl App {
                             };
                             self.disconnect();
                         }
-                        KeyCode::Enter => {}
+                        KeyCode::Enter => {
+                            if let Some(index) = self.menu.state.selected() {
+                                if matches!(self.connected, ConnectionStatus::Connected) {
+                                    self.screen = Screen::Disconnect;
+                                    self.disconnect();
+                                } else {
+                                    if index == 0 {
+                                        // reconnect
+                                        self.reconnect();
+                                    } else {
+                                        // disconnect
+                                        self.screen = Screen::Disconnect;
+                                        self.disconnect();
+                                    }
+                                }
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -544,13 +572,14 @@ impl App {
 
         self.connected = ConnectionStatus::Connecting;
 
+        self.lastLogin = Some(Local::now().format(DATE_FORMAT).to_string());
+
         match self.call_backend(args) {
             Ok(output) => {
                 self.connected = ConnectionStatus::Connected;
                 self.lastPingTimestamp = Some(Local::now());
                 self.lastPingAttempt = Some(Local::now());
                 self.lastError = None;
-                self.lastLogin = Some(Local::now().format(DATE_FORMAT).to_string());
 
                 // second line is the digest
                 self.passwordDigest = output.lines().nth(1).map(|s| s.to_string());
