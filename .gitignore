@@ -4,7 +4,7 @@ identifiants.txt
 #src/
 #Cargo.toml
 #linux.sh
-backend/
+
 
 # Pour Rust
 debug/
