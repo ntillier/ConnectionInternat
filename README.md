@@ -1,4 +1,4 @@
-Ce script a pour but d'automatiser la connection de l'ordinateur au réseau ethernet du lycée. Étant donné que le routeur utilise le protocol TSL 1.1, qui n'est plus supporté par les dernières versions de navigateurs, ce script permet de dépasser ce problème en se connectant automatiquement au réseau lorsqu'il est appelé.
+Ce script a pour but d'automatiser la connection de l'ordinateur au réseau ethernet du lycée (notamment de l'internat).Étant donné que le routeur utilise le protocol TSL 1.0, qui n'est plus supporté par les dernières versions de navigateurs, ce script permet de connecter automatiquement au réseau sans baisser la version minimale de sécurité du navigateur.
 Il est censé fonctionner sur toutes les distributions de linux.
 
 > Note: Quelques changements majeurs sont actuellement en cours, afin d'intégrer plus de fonctionnalités et de le porter sur Windows.
@@ -16,8 +16,7 @@ Il est censé fonctionner sur toutes les distributions de linux.
 - L'exécuter, avec `./script.sh` par exemple.
 
 # Conseil
-
-Pour éviter de devoir se déplacer dans le répertoire du script, il est possible de créer une commande (un alias en l'occurence).
+Pour éviter de devoir se déplacer dans le répertoire du script, il est possible de créer un alias.
 
 - Créez un fichier `.bash_aliases` ([plus d'informations](https://www.cyberciti.biz/faq/create-permanent-bash-alias-linux-unix/))
 - Ajoutez la ligne `alias connect="~/chemin/acces/script.sh"`
