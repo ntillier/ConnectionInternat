@@ -1,9 +1,8 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, prelude::*, BufRead};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-const CONFIG_PATH: &str = "config.txt";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Config {
@@ -18,6 +17,17 @@ fn create_config(path: &Path) {
     file.write_all(format!("{}\n", VERSION).as_bytes()).unwrap();
 }
 
+fn get_config_path() -> PathBuf {
+    let home_dir = PathBuf::from(match env::var("HOME") {
+        Ok(path) => path,
+        Err(_) => match env::var("USERPROFILE") {
+            Ok(path) => path,
+            Err(_) => panic!("Home directory not found"),
+        },
+    });
+    return home_dir.join(".internat-connection.txt");
+}
+
 impl Config {
     pub fn init() -> Self {
         let mut create = false;
@@ -25,7 +35,7 @@ impl Config {
         let mut username = String::new();
         let mut password = String::new();
 
-        let config_path = env::temp_dir().join(CONFIG_PATH);
+        let config_path = get_config_path();
 
         if config_path.exists() {
             let file =
@@ -66,7 +76,7 @@ impl Config {
     }
 
     pub fn save(&self) {
-        let config_path = env::temp_dir().join(CONFIG_PATH);
+        let config_path = get_config_path();
 
         if config_path.exists() {
             let mut file = File::create(&config_path)
