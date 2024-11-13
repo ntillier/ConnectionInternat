@@ -1,0 +1,123 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+)
+
+// const RepoPath = "ntillier/ConnectionInternat"
+
+const RepoPath = "sharkdp/bat"
+const ProgramName = "ConnectionInternat"
+
+func main() {
+	runningOS := runtime.GOOS
+	arch := runtime.GOARCH
+
+	if arch == "arm64" {
+		arch = "aarch64"
+	} else if arch == "amd64" {
+		arch = "x86_64"
+	}
+
+	if runningOS == "darwin" {
+		panic("L'application n'est pas supportée sur mac pour l'instant, meme si elle devrait etre facile à implémenter - merci de contacter les créateurs")
+	}
+	latestVersion, err := getLatestVersion()
+
+	if err != nil {
+		fmt.Println(err)
+		panic("Error getting latest version")
+	}
+	fmt.Printf("En train d'installer la version: %s", latestVersion)
+
+	suffix := "unknown-linux-musl" // just install musl version to avoid hassle
+	if runningOS == "darwin" {
+		suffix = "apple-darwin"
+	} else if runningOS == "windows" {
+		suffix = "pc-windows-msvc"
+	}
+
+	f := fmt.Sprintf("%s-%s-%s-%s", ProgramName, latestVersion, arch, suffix)
+	fmt.Println("En train d'installer le fichier: ", f)
+
+	// This will be a directory called ConnectionInternat cause who cares about versionning...
+	installLocation := ""
+	if runningOS == "linux" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			panic("Couldn't find user home directory!")
+		}
+		installLocation = filepath.Join(homeDir, "local", ProgramName)
+	} else if runningOS == "windows" {
+		localAppData, ok := os.LookupEnv("LOCALAPPDATA")
+		if !ok {
+			fmt.Println("LOCALAPPDATA environment variable not found")
+			panic("Couldn't find LOCALAPPDATA environment variable")
+		}
+		installLocation = filepath.Join(localAppData, ProgramName)
+	} else {
+		panic("unknown OS: " + runningOS)
+	}
+	// TRES IMPORTANT - NE RIEN SUPPRIMER JUSQU'à CE QU'ON AIT TÉLÉCHARGÉ
+	panic("wait for remote download first")
+	fmt.Printf("en train d'installer dans %s\n", installLocation)
+
+	err = os.RemoveAll(installLocation)
+	if err != nil && !os.IsNotExist(err) {
+		fmt.Println("Error cleaning directory:", err)
+		return
+	}
+
+	// Create the directory
+	err = os.MkdirAll(installLocation, 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+		return
+	}
+
+}
+
+type GitHubRelease struct {
+	TagName string `json:"tag_name"`
+}
+
+func getLatestVersion() (string, error) {
+	ctx := context.Background()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.github.com/repos/"+RepoPath+"/releases/latest", nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return "", err
+	}
+
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error fetching data:", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error fetching latest release, got status: ", resp.StatusCode)
+		return "", errors.New("can't find latest version")
+	}
+
+	var release GitHubRelease
+	err = json.NewDecoder(resp.Body).Decode(&release)
+	if err != nil {
+		fmt.Println("Error decoding response:", err)
+		return "", err
+
+	}
+
+	return release.TagName, nil
+}
