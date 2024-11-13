@@ -13,6 +13,7 @@ on:
 env:
     BINARY_NAME: ConnectionInternat
     VERSION_TAG: ${{ inputs.tag_name }}
+    BUNDLED_ALACRITTY_VERSION: "0.14.0"
 
 jobs:
     # This is roughly copied from bat's CICD and release script
@@ -145,6 +146,13 @@ jobs:
 
                   ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}/"
                   mkdir -p "${ARCHIVE_DIR}"
+
+                  if [[ "${{ matrix.job.target }}" =~ -pc-windows-.* ]]; then
+                    curl -Lo "$ARCHIVE_DIR/alacritty-portable.exe" https://github.com/alacritty/alacritty/releases/download/v${{ env.BUNDLED_ALACRITTY_VERSION }}/Alacritty-v${{ env.BUNDLED_ALACRITTY_VERSION }}-portable.exe
+                    cp "./run.bat" "$ARCHIVE_DIR/run.bat"
+                    sed -i "s/\$EXE_NAME/${{ steps.bin.outputs.BIN_NAME }}/g" "$ARCHIVE_DIR/run.bat"
+                  fi
+
 
                   # Binary
                   cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
