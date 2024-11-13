@@ -15,6 +15,7 @@ env:
     VERSION_TAG: ${{ inputs.tag_name }}
 
 jobs:
+    # This is roughly copied from bat's CICD and release script
     build:
         name: ${{ matrix.job.target }} (${{ matrix.job.os }})
         runs-on: ${{ matrix.job.os }}
@@ -25,58 +26,48 @@ jobs:
             fail-fast: false
             matrix:
                 job:
-                    # - {
-                    #       target: aarch64-unknown-linux-musl,
-                    #       os: ubuntu-20.04,
-                    #       dpkg_arch: arm64,
-                    #       use-cross: true,
-                    #   }
-                    # - {
-                    #       target: aarch64-unknown-linux-gnu,
-                    #       os: ubuntu-20.04,
-                    #       dpkg_arch: arm64,
-                    #       use-cross: true,
-                    #   }
-                    # - {
-                    #       target: arm-unknown-linux-gnueabihf,
-                    #       os: ubuntu-20.04,
-                    #       dpkg_arch: armhf,
-                    #       use-cross: true,
-                    #   }
-                    # - {
-                    #       target: arm-unknown-linux-musleabihf,
-                    #       os: ubuntu-20.04,
-                    #       dpkg_arch: musl-linux-armhf,
-                    #       use-cross: true,
-                    #   }
-                    # - { target: i686-pc-windows-msvc, os: windows-2019 }
-                    # - {
-                    #       target: i686-unknown-linux-gnu,
-                    #       os: ubuntu-20.04,
-                    #       dpkg_arch: i686,
-                    #       use-cross: true,
-                    #   }
-                    # - {
-                    #       target: i686-unknown-linux-musl,
-                    #       os: ubuntu-20.04,
-                    #       dpkg_arch: musl-linux-i686,
-                    #       use-cross: true,
-                    #   }
-                    # - { target: x86_64-apple-darwin, os: macos-12 }
-                    # - { target: aarch64-apple-darwin, os: macos-14 }
-                    # - { target: x86_64-pc-windows-gnu, os: windows-2019 }
-                    # - { target: x86_64-pc-windows-msvc, os: windows-2019 }
+                    - {
+                          target: aarch64-unknown-linux-musl,
+                          os: ubuntu-20.04,
+                          dpkg_arch: arm64,
+                          use-cross: true,
+                          backend: "back-linux-arm64",
+                      }
+                    - {
+                          target: aarch64-unknown-linux-gnu,
+                          os: ubuntu-20.04,
+                          dpkg_arch: arm64,
+                          use-cross: true,
+                          backend: "back-linux-arm64",
+                      }
+                    - {
+                          target: x86_64-apple-darwin,
+                          os: macos-12,
+                          backend: "back-darwin-amd64",
+                      }
+                    - {
+                          target: aarch64-apple-darwin,
+                          os: macos-14,
+                          backend: "back-darwin-amd64",
+                      }
+                    - {
+                          target: x86_64-pc-windows-msvc,
+                          os: windows-2019,
+                          backend: "back-windows-amd64.exe",
+                      }
                     - {
                           target: x86_64-unknown-linux-gnu,
                           os: ubuntu-20.04,
                           dpkg_arch: amd64,
                           use-cross: true,
+                          backend: back-linux-amd64,
                       }
                     - {
                           target: x86_64-unknown-linux-musl,
                           os: ubuntu-20.04,
                           dpkg_arch: musl-linux-amd64,
                           use-cross: true,
+                          backend: back-linux-amd64,
                       }
         env:
             BUILD_CMD: cargo
@@ -158,7 +149,7 @@ jobs:
                   cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
 
                   # Backend
-                  echo "SHOULD ADD BACKEND HERE"
+                  cp "go-backend/binaries/${{ matrix.job.backend }}" "$ARCHIVE_DIR/backend.exe"
 
 
                   # base compressed package
