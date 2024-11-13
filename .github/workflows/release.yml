@@ -19,7 +19,7 @@ jobs:
         name: ${{ matrix.job.target }} (${{ matrix.job.os }})
         runs-on: ${{ matrix.job.os }}
         permissions:
-            contents: read
+            contents: write
             packages: write
         strategy:
             fail-fast: false
