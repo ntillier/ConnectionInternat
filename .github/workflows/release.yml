@@ -150,7 +150,7 @@ jobs:
                   cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
 
                   # Backend
-                  cp "go-backend/binaries/${{ matrix.job.backend }}" "$ARCHIVE_DIR/connectioninternat-backend.exe"
+                  cp "go-backend/binaries/${{ matrix.job.backend }}" "$ARCHIVE_DIR/${{ env.BINARY_NAME }}-backend.exe"
 
 
                   # base compressed package
