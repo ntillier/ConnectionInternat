@@ -341,16 +341,14 @@ impl App {
                 if (key.kind == KeyEventKind::Press) {
                     match key.code {
                         KeyCode::Char('q') | KeyCode::Esc => {
-                            self.screen =
-                                if matches!(self.connectionStatus, ConnectionStatus::Connected) {
-                                    Screen::Disconnect
-                                } else {
-                                    Screen::Exit
-                                };
+                            self.screen = match self.connectionStatus {
+                                ConnectionStatus::Connected => Screen::Disconnect,
+                                _ => Screen::Exit,
+                            };
                             self.disconnect();
                         }
                         KeyCode::Enter => {
-                            if let Some(index) = self.menu.state.selected() {
+                            if let Some(index) = self.status_menu.state.selected() {
                                 if matches!(self.connectionStatus, ConnectionStatus::Connected) {
                                     self.screen = Screen::Disconnect;
                                     self.disconnect();
