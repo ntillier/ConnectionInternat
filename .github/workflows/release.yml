@@ -1,59 +1,195 @@
 on:
-    push:
-        tags:
-            - "v*"
+    workflow_dispatch:
+        inputs:
+            tag_name:
+                description: "Version name; e.g. 1.0.0; DON'T PUT A V IN FRONT OF IT"
+                required: true
+            release:
+                description: "Whether to create a GitHub Release"
+                type: boolean
+                default: true
+
+env:
+    BINARY_NAME: ConnectionInternat
+    VERSION_TAG: ${{ inputs.tag_name }}
+
 jobs:
-    release:
-        name: Release - ${{ matrix.platform.os-name }}
+    build:
+        name: ${{ matrix.job.target }} (${{ matrix.job.os }})
+        runs-on: ${{ matrix.job.os }}
         strategy:
+            fail-fast: false
             matrix:
-                platform:
-                    - os-name: FreeBSD-x86_64
-                      runs-on: ubuntu-20.04
-                      target: x86_64-unknown-freebsd
-                      skip_tests: true
-
-                    - os-name: Linux-x86_64
-                      runs-on: ubuntu-20.04
-                      target: x86_64-unknown-linux-musl
-                      skip_tests: true
-
-                    - os-name: Linux-aarch64
-                      runs-on: ubuntu-20.04
-                      target: aarch64-unknown-linux-musl
-                      skip_tests: true
-
-                    - os-name: Linux-riscv64
-                      runs-on: ubuntu-20.04
-                      target: riscv64gc-unknown-linux-gnu
-                      skip_tests: true
-
-                    - os-name: Windows-x86_64
-                      runs-on: windows-latest
-                      target: x86_64-pc-windows-msvc
-                      skip_tests: true
-
-                    - os-name: macOS-x86_64
-                      runs-on: macOS-latest
-                      target: x86_64-apple-darwin
-                      skip_tests: true
-
-                    # more targets here ...
-
-        runs-on: ${{ matrix.platform.runs-on }}
+                job:
+                    - {
+                          target: aarch64-unknown-linux-musl,
+                          os: ubuntu-20.04,
+                          dpkg_arch: arm64,
+                          use-cross: true,
+                      }
+                    - {
+                          target: aarch64-unknown-linux-gnu,
+                          os: ubuntu-20.04,
+                          dpkg_arch: arm64,
+                          use-cross: true,
+                      }
+                    - {
+                          target: arm-unknown-linux-gnueabihf,
+                          os: ubuntu-20.04,
+                          dpkg_arch: armhf,
+                          use-cross: true,
+                      }
+                    - {
+                          target: arm-unknown-linux-musleabihf,
+                          os: ubuntu-20.04,
+                          dpkg_arch: musl-linux-armhf,
+                          use-cross: true,
+                      }
+                    - { target: i686-pc-windows-msvc, os: windows-2019 }
+                    - {
+                          target: i686-unknown-linux-gnu,
+                          os: ubuntu-20.04,
+                          dpkg_arch: i686,
+                          use-cross: true,
+                      }
+                    - {
+                          target: i686-unknown-linux-musl,
+                          os: ubuntu-20.04,
+                          dpkg_arch: musl-linux-i686,
+                          use-cross: true,
+                      }
+                    - { target: x86_64-apple-darwin, os: macos-12 }
+                    - { target: aarch64-apple-darwin, os: macos-14 }
+                    - { target: x86_64-pc-windows-gnu, os: windows-2019 }
+                    - { target: x86_64-pc-windows-msvc, os: windows-2019 }
+                    - {
+                          target: x86_64-unknown-linux-gnu,
+                          os: ubuntu-20.04,
+                          dpkg_arch: amd64,
+                          use-cross: true,
+                      }
+                    - {
+                          target: x86_64-unknown-linux-musl,
+                          os: ubuntu-20.04,
+                          dpkg_arch: musl-linux-amd64,
+                          use-cross: true,
+                      }
+        env:
+            BUILD_CMD: cargo
         steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Build binary
-              uses: houseabsolute/actions-rust-cross@v0
+            - name: Checkout source code
+              uses: actions/checkout@v4
+
+            - name: Install prerequisites
+              shell: bash
+              run: |
+                  case ${{ matrix.job.target }} in
+                    arm-unknown-linux-*) sudo apt-get -y update ; sudo apt-get -y install gcc-arm-linux-gnueabihf ;;
+                    aarch64-unknown-linux-gnu) sudo apt-get -y update ; sudo apt-get -y install gcc-aarch64-linux-gnu ;;
+                  esac
+
+            - name: Install Rust toolchain
+              uses: dtolnay/rust-toolchain@stable
               with:
-                  command: ${{ matrix.platform.command }}
-                  target: ${{ matrix.platform.target }}
-                  args: "--locked --release"
-                  strip: true
-            - name: Publish artifacts and release
-              uses: houseabsolute/actions-rust-release@v0
+                  targets: ${{ matrix.job.target }}
+
+            - name: Install cross
+              if: matrix.job.use-cross
+              uses: taiki-e/install-action@v2
               with:
-                  executable-name: ConnectionInternat
-                  target: ${{ matrix.platform.target }}
-                  release-tag-prefix: "v"
+                  tool: cross
+
+            - name: Overwrite build command env variable
+              if: matrix.job.use-cross
+              shell: bash
+              run: echo "BUILD_CMD=cross" >> $GITHUB_ENV
+
+            - name: Show version information (Rust, cargo, GCC)
+              shell: bash
+              run: |
+                  gcc --version || true
+                  rustup -V
+                  rustup toolchain list
+                  rustup default
+                  cargo -V
+                  rustc -V
+
+            - name: Build
+              shell: bash
+              run: $BUILD_CMD build --locked --release --target=${{ matrix.job.target }}
+
+            - name: Set binary name & path
+              id: bin
+              shell: bash
+              run: |
+                  # Figure out suffix of binary
+                  EXE_suffix=""
+                  case ${{ matrix.job.target }} in
+                    *-pc-windows-*) EXE_suffix=".exe" ;;
+                  esac;
+
+                  # Setup paths
+                  BIN_NAME="${{ env.BINARY_NAME }}${EXE_suffix}"
+                  BIN_PATH="target/${{ matrix.job.target }}/release/${BIN_NAME}"
+
+                  # Let subsequent steps know where to find the binary
+                  echo "BIN_PATH=${BIN_PATH}" >> $GITHUB_OUTPUT
+                  echo "BIN_NAME=${BIN_NAME}" >> $GITHUB_OUTPUT
+
+            - name: Create tarball
+              id: package
+              shell: bash
+              run: |
+                  PKG_suffix=".tar.gz" ; case ${{ matrix.job.target }} in *-pc-windows-*) PKG_suffix=".zip" ;; esac;
+                  PKG_BASENAME=${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-${{ matrix.job.target }}
+                  PKG_NAME=${PKG_BASENAME}${PKG_suffix}
+                  echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
+
+                  ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}/"
+                  mkdir -p "${ARCHIVE_DIR}"
+                  mkdir -p "${ARCHIVE_DIR}/autocomplete"
+
+                  # Binary
+                  cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
+
+                  # Backend
+                  echo "SHOULD ADD BACKEND HERE"
+
+
+                  # base compressed package
+                  pushd "${PKG_STAGING}/" >/dev/null
+                  case ${{ matrix.job.target }} in
+                    *-pc-windows-*) 7z -y a "${PKG_NAME}" "${PKG_BASENAME}"/* | tail -2 ;;
+                    *) tar czf "${PKG_NAME}" "${PKG_BASENAME}"/* ;;
+                  esac;
+                  popd >/dev/null
+
+                  # Let subsequent steps know where to find the compressed package
+                  echo "PKG_PATH=${PKG_STAGING}/${PKG_NAME}" >> $GITHUB_OUTPUT
+
+            - name: "Artifact upload: tarball"
+              uses: actions/upload-artifact@master
+              with:
+                  name: ${{ steps.package.outputs.PKG_NAME }}
+                  path: ${{ steps.package.outputs.PKG_PATH }}
+
+            - name: Check for release
+              id: is-release
+              shell: bash
+              run: |
+                  unset IS_RELEASE ; if [[ $GITHUB_REF =~ ^refs/tags/v[0-9].* ]]; then IS_RELEASE='true' ; fi
+                  echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_OUTPUT
+
+            - name: Publish archives and packages
+              uses: softprops/action-gh-release@v2
+              if: steps.is-release.outputs.IS_RELEASE
+              with:
+                  name: v${{ env.VERSION_TAG }} Release
+                  tag_name: v${{ env.VERSION_TAG }}
+                  draft: true
+                  generate_release_notes: true
+                  target_commitish: ${{ github.sha }}
+                  files: |
+                      ${{ steps.package.outputs.PKG_PATH }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
