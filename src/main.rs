@@ -87,6 +87,7 @@ struct App {
 const TICK_RATE: u64 = 1000;
 const PING_INTERVAL: i64 = 50;
 const DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+const BACKEND_PATH: &str = "./ConnectionInternat-backend.exe";
 
 impl App {
     fn new() -> Self {
@@ -121,7 +122,7 @@ impl App {
             lastLogin: None,
             lastPingAttempt: None,
             lastPingTimestamp: None,
-            backendPath: String::from("./go-backend/binaries/back-linux-amd64"),
+            backendPath: BACKEND_PATH.to_string(),
             lastError: None,
 
             step: Step::Username,
