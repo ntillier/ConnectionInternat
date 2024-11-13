@@ -61,7 +61,7 @@ jobs:
                     # - { target: x86_64-apple-darwin, os: macos-12 }
                     # - { target: aarch64-apple-darwin, os: macos-14 }
                     # - { target: x86_64-pc-windows-gnu, os: windows-2019 }
-                    - { target: x86_64-pc-windows-msvc, os: windows-2019 }
+                    # - { target: x86_64-pc-windows-msvc, os: windows-2019 }
                     - {
                           target: x86_64-unknown-linux-gnu,
                           os: ubuntu-20.04,
@@ -145,9 +145,8 @@ jobs:
                   PKG_NAME=${PKG_BASENAME}${PKG_suffix}
                   echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
 
-                  ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}/"
+                  ARCHIVE_DIR="intermediate_dir/${PKG_STAGING}/${PKG_BASENAME}/"
                   mkdir -p "${ARCHIVE_DIR}"
-                  mkdir -p "${ARCHIVE_DIR}/autocomplete"
 
                   # Binary
                   cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
