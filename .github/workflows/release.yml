@@ -1,3 +1,4 @@
+run-name: Release ${{ inputs.tag_name }}
 on:
     workflow_dispatch:
         inputs:
@@ -145,7 +146,9 @@ jobs:
                   PKG_NAME=${PKG_BASENAME}${PKG_suffix}
                   echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
 
-                  ARCHIVE_DIR="intermediate_dir/${PKG_STAGING}/${PKG_BASENAME}/"
+                  PKG_STAGING="intermediate_dir/package"
+
+                  ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}/"
                   mkdir -p "${ARCHIVE_DIR}"
 
                   # Binary
@@ -172,16 +175,9 @@ jobs:
                   name: ${{ steps.package.outputs.PKG_NAME }}
                   path: ${{ steps.package.outputs.PKG_PATH }}
 
-            - name: Check for release
-              id: is-release
-              shell: bash
-              run: |
-                  unset IS_RELEASE ; if [[ $GITHUB_REF =~ ^refs/tags/v[0-9].* ]]; then IS_RELEASE='true' ; fi
-                  echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_OUTPUT
-
             - name: Publish archives and packages
               uses: softprops/action-gh-release@v2
-              if: steps.is-release.outputs.IS_RELEASE
+              if: inputs.release
               with:
                   name: v${{ env.VERSION_TAG }} Release
                   tag_name: v${{ env.VERSION_TAG }}
