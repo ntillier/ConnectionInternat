@@ -12,9 +12,10 @@ import (
 )
 
 // const RepoPath = "ntillier/ConnectionInternat"
+// const ProgramName = "ConnectionInternat"
 
 const RepoPath = "sharkdp/bat"
-const ProgramName = "ConnectionInternat"
+const ProgramName = "bat"
 
 func main() {
 	runningOS := runtime.GOOS
@@ -65,23 +66,44 @@ func main() {
 	} else {
 		panic("unknown OS: " + runningOS)
 	}
-	// TRES IMPORTANT - NE RIEN SUPPRIMER JUSQU'à CE QU'ON AIT TÉLÉCHARGÉ
-	panic("wait for remote download first")
-	fmt.Printf("en train d'installer dans %s\n", installLocation)
 
+	installURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", RepoPath, latestVersion, f)
+	if runningOS == "windows" {
+		installURL += ".zip"
+	} else {
+		installURL += ".tar.gz"
+	}
+	// TRES IMPORTANT - NE RIEN SUPPRIMER JUSQU'à CE QU'ON AIT TÉLÉCHARGÉ
+	fmt.Printf("En train de télécharger %s\n", installURL)
+
+	tempDir, err := downloadArchive(installURL)
+	if err != nil {
+		fmt.Println("error downloading archive: ", err)
+		panic("couldn't download archive")
+	}
+
+	fmt.Printf("Téléchargé et extrait dans %s\n", tempDir)
+
+	fmt.Printf("En train d'enlever l'ancienne installation si elle existe, à %s\n", installLocation)
 	err = os.RemoveAll(installLocation)
 	if err != nil && !os.IsNotExist(err) {
 		fmt.Println("Error cleaning directory:", err)
 		return
 	}
 
-	// Create the directory
-	err = os.MkdirAll(installLocation, 0755)
-	if err != nil {
-		fmt.Println("Error creating directory:", err)
-		return
+	tempDir = filepath.Join(tempDir, f)
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
+		panic(fmt.Sprintf("coudn't find the correct directory in, it does not exist %s", tempDir))
 	}
 
+	err = MoveFolder(tempDir, installLocation, true)
+	if err != nil {
+		fmt.Println(err)
+		panic(fmt.Sprintf("couldn't copy files from %s to %s", tempDir, installLocation))
+	}
+
+	fmt.Println("En train de supprimer le dossier temporaire")
+	os.RemoveAll(tempDir)
 }
 
 type GitHubRelease struct {
@@ -120,4 +142,23 @@ func getLatestVersion() (string, error) {
 	}
 
 	return release.TagName, nil
+}
+
+// returns the temp path at which we unpacked the archive
+func downloadArchive(url string) (string, error) {
+	tempDir, err := os.MkdirTemp("", "connectinternat")
+	if err != nil {
+		return "", fmt.Errorf("error creating tempdir, %w", err)
+	}
+	switch getArchiveExtension(url) {
+	case ".zip":
+		return tempDir, DownloadAndExtractZip(url, tempDir)
+	case ".gz":
+		return tempDir, DownloadAndExtractTarGz(url, tempDir)
+	}
+	return "", fmt.Errorf("invalid file type")
+}
+
+func getArchiveExtension(url string) string {
+	return filepath.Ext(url)
 }
