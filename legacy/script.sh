@@ -14,6 +14,7 @@ password="$(sed '2q;d' $credentials)"
 login() {
     echo "Connection avec le login $1"
 
+
     result="$(OPENSSL_CONF="$conf" curl -s -k --tlsv1 'https://controller.access.network/portal_api.php' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data-raw "action=authenticate&login=$1&password=$2&policy_accept=false")"
 
     digest=$(jq -r '.user.passwordDigest.value' <<<"$result")
