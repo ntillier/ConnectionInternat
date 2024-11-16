@@ -214,19 +214,19 @@ jobs:
                   mkdir -p ./binaries
 
                   echo "Building amd64-linux"
-                  GOOS=linux GOARCH=amd64 go build -o ./binaries/installer-linux-amd64 -a main.go
+                  GOOS=linux GOARCH=amd64 go build -o ./binaries/installer-linux-amd64
 
                   echo "Building arm64-linux"
-                  GOOS=linux GOARCH=arm64 go build -o ./binaries/installer-linux-arm64 -a main.go
+                  GOOS=linux GOARCH=arm64 go build -o ./binaries/installer-linux-arm64 
 
                   echo "Building amd64-darwin"
-                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/installer-darwin-amd64 -a main.go
+                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/installer-darwin-amd64 
 
                   # echo "Building arm64-darwin"
-                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/installer-darwin-arm64 -a main.go
+                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/installer-darwin-arm64 
 
                   echo "Building amd64-windows"
-                  GOOS=windows GOARCH=amd64 go build -o ./binaries/installer-windows.exe -a main.go
+                  GOOS=windows GOARCH=amd64 go build -o ./binaries/installer-windows.exe
 
             - name: Publish installer binaries
               uses: softprops/action-gh-release@v2
