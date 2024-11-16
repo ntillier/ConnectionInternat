@@ -11,11 +11,11 @@ import (
 	"runtime"
 )
 
-// const RepoPath = "ntillier/ConnectionInternat"
-// const ProgramName = "ConnectionInternat"
+const RepoPath = "ntillier/ConnectionInternat"
+const ProgramName = "ConnectionInternat"
 
-const RepoPath = "sharkdp/bat"
-const ProgramName = "bat"
+// const RepoPath = "sharkdp/bat"
+// const ProgramName = "bat"
 
 func main() {
 	runningOS := runtime.GOOS
