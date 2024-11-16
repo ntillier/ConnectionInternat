@@ -193,7 +193,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     release_installers:
         name: Build Installers
-        # needs: build
+        needs: build
         runs-on: ubuntu-20.04
         continue-on-error: false
         permissions:
@@ -216,19 +216,19 @@ jobs:
                   mkdir -p ./binaries
 
                   echo "Building amd64-linux"
-                  GOOS=linux GOARCH=amd64 go build -o ./binaries/installer-linux-amd64
+                  GOOS=linux GOARCH=amd64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-linux-amd64
 
                   echo "Building arm64-linux"
-                  GOOS=linux GOARCH=arm64 go build -o ./binaries/installer-linux-arm64 
+                  GOOS=linux GOARCH=arm64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-linux-arm64 
 
                   echo "Building amd64-darwin"
-                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/installer-darwin-amd64 
+                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-darwin-amd64 
 
                   # echo "Building arm64-darwin"
-                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/installer-darwin-arm64 
+                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-darwin-arm64 
 
                   echo "Building amd64-windows"
-                  GOOS=windows GOARCH=amd64 go build -o ./binaries/installer-windows.exe
+                  GOOS=windows GOARCH=amd64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-windows.exe
 
             - name: Publish installer binaries
               uses: softprops/action-gh-release@v2
@@ -237,9 +237,9 @@ jobs:
                   draft: true
                   target_commitish: ${{ github.sha }}
                   files: |
-                      ./installer/binaries/installer-linux-amd64
-                      ./installer/binaries/installer-linux-arm64
-                      ./installer/binaries/installer-darwin-amd64
-                      ./installer/binaries/installer-windows.exe
+                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-linux-amd64
+                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-linux-arm64
+                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-darwin-amd64
+                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-windows.exe
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
