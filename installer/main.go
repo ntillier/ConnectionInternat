@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -113,8 +114,6 @@ func main() {
 	os.RemoveAll(tempDir)
 
 	fmt.Println("--------------------------------------------------------------")
-	fmt.Println("------             Installation complète                ------")
-	fmt.Println("--------------------------------------------------------------")
 
 	if runningOS == "linux" {
 		homeDir, _ := os.UserHomeDir() // error is irrelevant, it's been tried before
@@ -157,6 +156,17 @@ func main() {
 		}
 	}
 
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("------             Installation complète                ------")
+	fmt.Println("--------------------------------------------------------------")
+
+	waitForEnter()
+}
+
+func waitForEnter() {
+	fmt.Println("Appuyez sur Entrée pour continuer...")
+	reader := bufio.NewReader(os.Stdin)
+	_, _ = reader.ReadString('\n')
 }
 
 type GitHubRelease struct {
