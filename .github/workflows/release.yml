@@ -193,7 +193,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     release_installers:
-        name: Installers for ${{ inputs.tag_name }}
+        name: Build Installers
         needs: build
         runs-on: ubuntu-20.04
         continue-on-error: false
