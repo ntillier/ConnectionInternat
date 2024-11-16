@@ -55,7 +55,7 @@ func main() {
 		if err != nil {
 			panic("Couldn't find user home directory!")
 		}
-		installLocation = filepath.Join(homeDir, "local", ProgramName)
+		installLocation = filepath.Join(homeDir, ".local", ProgramName)
 	} else if runningOS == "windows" {
 		localAppData, ok := os.LookupEnv("LOCALAPPDATA")
 		if !ok {
