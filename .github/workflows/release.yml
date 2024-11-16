@@ -216,7 +216,7 @@ jobs:
                   rm -rf ./binaries
                   mkdir -p ./binaries
 
-                  export INSTALLER_PREFIX="${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer"
+                  export INSTALLER_PREFIX="installer-${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}"
 
                   echo "Building amd64-linux"
                   GOOS=linux GOARCH=amd64 go build -o ./binaries/$INSTALLER_PREFIX-linux-amd64
@@ -240,9 +240,9 @@ jobs:
                   draft: true
                   target_commitish: ${{ github.sha }}
                   files: |
-                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-linux-amd64
-                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-linux-arm64
-                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-darwin-amd64
-                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-windows.exe
+                      ./installer/binaries/installer-${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-linux-amd64
+                      ./installer/binaries/installer-${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-linux-arm64
+                      ./installer/binaries/installer-${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-darwin-amd64
+                      ./installer/binaries/installer-${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-windows.exe
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
