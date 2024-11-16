@@ -30,13 +30,20 @@ func main() {
 	if runningOS == "darwin" {
 		panic("L'application n'est pas supportée sur mac pour l'instant, meme si elle devrait etre facile à implémenter - merci de contacter les créateurs")
 	}
-	latestVersion, err := getLatestVersion()
 
-	if err != nil {
-		fmt.Println(err)
-		panic("Error getting latest version")
+	latestVersion := os.Getenv("PROGRAM_VERSION")
+
+	if latestVersion == "" {
+		var err error
+		latestVersion, err = getLatestVersion()
+		if err != nil {
+			fmt.Println(err)
+			panic("Error getting latest version")
+		}
+	} else {
+		fmt.Println("Version spécifiée par l'environnement: ", latestVersion)
 	}
-	fmt.Printf("En train d'installer la version: %s", latestVersion)
+	fmt.Printf("En train d'installer la version: %s\n", latestVersion)
 
 	suffix := "unknown-linux-musl" // just install musl version to avoid hassle
 	if runningOS == "darwin" {
