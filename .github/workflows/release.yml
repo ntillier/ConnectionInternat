@@ -15,14 +15,15 @@ env:
     VERSION_TAG: ${{ inputs.tag_name }}
     BUNDLED_ALACRITTY_VERSION: "0.14.0"
 
+permissions:
+    contents: write
+    packages: write
+
 jobs:
     # This is roughly copied from bat's CICD and release script
     build:
         name: ${{ matrix.job.target }} (${{ matrix.job.os }})
         runs-on: ${{ matrix.job.os }}
-        permissions:
-            contents: write
-            packages: write
         strategy:
             fail-fast: false
             matrix:
@@ -189,5 +190,54 @@ jobs:
                   target_commitish: ${{ github.sha }}
                   files: |
                       ${{ steps.package.outputs.PKG_PATH }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    release_installers:
+        name: Installers for ${{ inputs.tag_name }}
+        needs: build
+        runs-on: ubuntu-20.04
+        continue-on-error: false
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v4
+
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-vesion: 1.23.2
+
+            - name: Build installer
+              shell: bash
+              run: |
+                  cd ./installer
+                  rm -rf ./binaries
+                  mkdir -p ./binaries
+
+                  echo "Building amd64-linux"
+                  GOOS=linux GOARCH=amd64 go build -o ./binaries/installer-linux-amd64 -a main.go
+
+                  echo "Building arm64-linux"
+                  GOOS=linux GOARCH=arm64 go build -o ./binaries/installer-linux-arm64 -a main.go
+
+                  echo "Building amd64-darwin"
+                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/installer-darwin-amd64 -a main.go
+
+                  # echo "Building arm64-darwin"
+                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/installer-darwin-arm64 -a main.go
+
+                  echo "Building amd64-windows"
+                  GOOS=windows GOARCH=amd64 go build -o ./binaries/installer-windows.exe -a main.go
+
+            - name: Publish installer binaries
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: v${{ env.VERSION_TAG }}
+                  draft: true
+                  target_commitish: ${{ github.sha }}
+                  files: |
+                      ./installer/binaries/installer-linux-amd64
+                      ./installer/binaries/installer-linux-arm64
+                      ./installer/binaries/installer-darwin-amd64
+                      ./installer/binaries/installer-windows.exe
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
