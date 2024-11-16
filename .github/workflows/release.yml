@@ -206,7 +206,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
-                  go-vesion: 1.23.2
+                  go-version: 1.23.2
 
             - name: Build installer
               id: build
