@@ -87,7 +87,20 @@ struct App {
 const TICK_RATE: u64 = 1000;
 const PING_INTERVAL: i64 = 50;
 const DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
-const BACKEND_PATH: &str = "./ConnectionInternat-backend.exe";
+const BACKEND_FILE_NAME: &str = "ConnectionInternat-backend.exe";
+
+fn getBackendPath() -> String {
+    // if env variable BACKEND_PATH is set, use it
+    if let Ok(path) = std::env::var("BACKEND_PATH") {
+        return path;
+    }
+    let mut path = std::env::current_exe().unwrap();
+    if !path.pop() {
+        panic!("Failed to pop path to backend");
+    }
+    path.push(BACKEND_FILE_NAME);
+    path.to_str().unwrap().to_string()
+}
 
 impl App {
     fn new() -> Self {
@@ -122,7 +135,7 @@ impl App {
             lastLogin: None,
             lastPingAttempt: None,
             lastPingTimestamp: None,
-            backendPath: BACKEND_PATH.to_string(),
+            backendPath: getBackendPath(),
             lastError: None,
 
             step: Step::Username,
