@@ -119,6 +119,7 @@ func DownloadAndExtractZip(url, targetDir string) error {
 	// Step 1: Download the .zip file
 	resp, err := http.Get(url)
 	if err != nil {
+		printClearError("Erreur de téléchargement du fichier")
 		return fmt.Errorf("failed to download file: %w", err)
 	}
 	defer resp.Body.Close()
