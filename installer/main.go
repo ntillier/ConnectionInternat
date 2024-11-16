@@ -104,6 +104,52 @@ func main() {
 
 	fmt.Println("En train de supprimer le dossier temporaire")
 	os.RemoveAll(tempDir)
+
+	fmt.Println("--------------------------------------------------------------")
+	fmt.Println("------             Installation complète                ------")
+	fmt.Println("--------------------------------------------------------------")
+
+	if runningOS == "linux" {
+		homeDir, _ := os.UserHomeDir() // error is irrelevant, it's been tried before
+
+		binLocation := filepath.Join(installLocation, ProgramName)
+		symlinkLocation := filepath.Join(homeDir, ProgramName)
+
+		fmt.Println("Création d'un symlink de " + symlinkLocation + " vers " + binLocation)
+		if _, err := os.Stat(symlinkLocation); err == nil {
+			fmt.Println("Suppression de l'ancien fichier symlink...")
+			err = os.Remove(symlinkLocation)
+			if err != nil {
+				fmt.Println("Error removing old symlink file:", err)
+			}
+		}
+
+		err = os.Symlink(binLocation, symlinkLocation)
+		if err != nil {
+			fmt.Println("Error creating symlink:", err)
+		}
+
+		fmt.Println("Symlink créé avec succès!")
+		fmt.Println("Vous pouvez maintenant lancer l'application en tapant ~/" + ProgramName + " dans un terminal")
+
+	} else if runningOS == "windows" {
+		shortcutName := ProgramName + ".lnk"
+		src := filepath.Join(installLocation, ProgramName+".bat")
+
+		fmt.Println("Création d'un raccourci sur le bureau...")
+		err = makeWindowsLink(src, filepath.Join(os.Getenv("USERPROFILE"), "Desktop", shortcutName))
+		if err != nil {
+			fmt.Println("Error creating shortcut on desktop:", err)
+		}
+
+		fmt.Println("Création d'un raccourci dans le menu démarrer...")
+		startMenuPath := filepath.Join(os.Getenv("APPDATA"), "Microsoft", "Windows", "Start Menu", "Programs")
+		err = makeWindowsLink(src, filepath.Join(startMenuPath, shortcutName))
+		if err != nil {
+			fmt.Println("Error creating shortcut in start menu:", err)
+		}
+	}
+
 }
 
 type GitHubRelease struct {
