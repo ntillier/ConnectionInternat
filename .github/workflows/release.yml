@@ -150,8 +150,8 @@ jobs:
 
                   if [[ "${{ matrix.job.target }}" =~ -pc-windows-.* ]]; then
                     # curl -Lo "$ARCHIVE_DIR/alacritty-portable.exe" https://github.com/alacritty/alacritty/releases/download/v${{ env.BUNDLED_ALACRITTY_VERSION }}/Alacritty-v${{ env.BUNDLED_ALACRITTY_VERSION }}-portable.exe
-                    cp "./run.bat" "$ARCHIVE_DIR/run.bat"
-                    sed -i "s/\$EXE_NAME/${{ steps.bin.outputs.BIN_NAME }}/g" "$ARCHIVE_DIR/ConnectionInternat.bat"
+                    cp "./run.bat" "$ARCHIVE_DIR/${{ env.BINARY_NAME }}.bat"
+                    sed -i "s/\$EXE_NAME/${{ steps.bin.outputs.BIN_NAME }}/g" "$ARCHIVE_DIR/${{ env.BINARY_NAME }}.bat"
                   fi
 
 
