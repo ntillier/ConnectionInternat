@@ -209,26 +209,29 @@ jobs:
                   go-vesion: 1.23.2
 
             - name: Build installer
+              id: build
               shell: bash
               run: |
                   cd ./installer
                   rm -rf ./binaries
                   mkdir -p ./binaries
 
+                  export INSTALLER_PREFIX="${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer"
+
                   echo "Building amd64-linux"
-                  GOOS=linux GOARCH=amd64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-linux-amd64
+                  GOOS=linux GOARCH=amd64 go build -o ./binaries/$INSTALLER_PREFIX-linux-amd64
 
                   echo "Building arm64-linux"
-                  GOOS=linux GOARCH=arm64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-linux-arm64 
+                  GOOS=linux GOARCH=arm64 go build -o ./binaries/$INSTALLER_PREFIX-linux-arm64 
 
                   echo "Building amd64-darwin"
-                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-darwin-amd64 
+                  GOOS=darwin GOARCH=amd64 go build -o ./binaries/$INSTALLER_PREFIX-darwin-amd64 
 
                   # echo "Building arm64-darwin"
-                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-darwin-arm64 
+                  # GOOS=darwin GOARCH=arm64 go build -o ./binaries/$INSTALLER_PREFIX-darwin-arm64 
 
                   echo "Building amd64-windows"
-                  GOOS=windows GOARCH=amd64 go build -o ./binaries/${{ env.BINARY_NAME }}-installer-windows.exe
+                  GOOS=windows GOARCH=amd64 go build -o ./binaries/$INSTALLER_PREFIX-windows.exe
 
             - name: Publish installer binaries
               uses: softprops/action-gh-release@v2
@@ -237,9 +240,9 @@ jobs:
                   draft: true
                   target_commitish: ${{ github.sha }}
                   files: |
-                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-linux-amd64
-                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-linux-arm64
-                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-darwin-amd64
-                      ./installer/binaries/${{ env.BINARY_NAME }}-installer-windows.exe
+                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-linux-amd64
+                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-linux-arm64
+                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-darwin-amd64
+                      ./installer/binaries/${{ env.BINARY_NAME }}-v${{ env.VERSION_TAG }}-installer-windows.exe
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
