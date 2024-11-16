@@ -145,8 +145,8 @@ jobs:
 
                   PKG_STAGING="intermediate_dir/package"
 
-                  ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}/"
-                  mkdir -p "${ARCHIVE_DIR}"
+                  ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}"
+                  mkdir -p "${ARCHIVE_DIR}/"
 
                   if [[ "${{ matrix.job.target }}" =~ -pc-windows-.* ]]; then
                     # curl -Lo "$ARCHIVE_DIR/alacritty-portable.exe" https://github.com/alacritty/alacritty/releases/download/v${{ env.BUNDLED_ALACRITTY_VERSION }}/Alacritty-v${{ env.BUNDLED_ALACRITTY_VERSION }}-portable.exe
@@ -156,7 +156,7 @@ jobs:
 
 
                   # Binary
-                  cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
+                  cp "${{ steps.bin.outputs.BIN_PATH }}" "$ARCHIVE_DIR/"
 
                   # Backend
                   cp "go-backend/binaries/${{ matrix.job.backend }}" "$ARCHIVE_DIR/${{ env.BINARY_NAME }}-backend.exe"
