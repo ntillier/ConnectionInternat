@@ -95,6 +95,7 @@ func main() {
 	fmt.Printf("En train d'enlever l'ancienne installation si elle existe, à %s\n", installLocation)
 	err = os.RemoveAll(installLocation)
 	if err != nil && !os.IsNotExist(err) {
+		printClearError("Impossible de supprimer l'ancienne version du logiciel, peut etre etes-vous connecté avec le mauvais compte?")
 		fmt.Println("Error cleaning directory:", err)
 		return
 	}
@@ -186,6 +187,8 @@ func getLatestVersion() (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		printClearError("Impossible de trouver la dernière version du logiciel, merci de vérifier votre connexion internet, nécessaire durant l'installation")
+
 		fmt.Println("Error fetching data:", err)
 		return "", err
 	}
@@ -224,4 +227,16 @@ func downloadArchive(url string) (string, error) {
 
 func getArchiveExtension(url string) string {
 	return filepath.Ext(url)
+}
+
+func printClearError(e string) {
+	fmt.Println("")
+	fmt.Println("----------------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("------                                         Erreur lors de l'installation                                                ------")
+	fmt.Println("----------------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("")
+	fmt.Println(e)
+	fmt.Println("")
+	fmt.Println("----------------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("")
 }
