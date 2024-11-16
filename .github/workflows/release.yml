@@ -216,7 +216,7 @@ jobs:
                   rm -rf ./binaries
                   mkdir -p ./binaries
 
-                  export INSTALLER_PREFIX="installer-${{ env.BINARY_NAME }}
+                  export INSTALLER_PREFIX="installer-${{ env.BINARY_NAME }}"
 
                   echo "Building amd64-linux"
                   GOOS=linux GOARCH=amd64 go build -o ./binaries/$INSTALLER_PREFIX-linux-amd64
