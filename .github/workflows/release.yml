@@ -15,15 +15,14 @@ env:
     VERSION_TAG: ${{ inputs.tag_name }}
     BUNDLED_ALACRITTY_VERSION: "0.14.0"
 
-permissions:
-    contents: write
-    packages: write
-
 jobs:
     # This is roughly copied from bat's CICD and release script
     build:
         name: ${{ matrix.job.target }} (${{ matrix.job.os }})
         runs-on: ${{ matrix.job.os }}
+        permissions:
+            contents: write
+            packages: write
         strategy:
             fail-fast: false
             matrix:
@@ -194,9 +193,12 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     release_installers:
         name: Build Installers
-        needs: build
+        # needs: build
         runs-on: ubuntu-20.04
         continue-on-error: false
+        permissions:
+            contents: write
+            packages: write
         steps:
             - name: Checkout source code
               uses: actions/checkout@v4
