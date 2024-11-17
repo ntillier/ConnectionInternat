@@ -2,18 +2,18 @@
 
 Ce programme permet de se connecter au réseau interne de l'internat du Lycée du Parc. Le [contrôleur du réseau](https://controller.access.network) étant ancien, son chiffrement obsolète et son certificat invalide, il est incompatible avec les navigateurs les plus récents.
 
-La démarche proposée par le lycée est de télécharger la version antérieure d'un navigateur (ils proposent le navigateur Firefox version 130.0), et de positionner la variable `security.tls.version.min` dans la configuration du navigateur, avant de se rendre sur le [site](https://controller.access.network) pour se connecter.
+La démarche proposée par le lycée est de télécharger la version antérieure d'un navigateur (ils proposent le navigateur Firefox version 130.0), et de positionner la variable `security.tls.version.min` à `1` dans la configuration du navigateur, avant de se rendre sur le [site](https://controller.access.network) pour se connecter.
 
-Cette manipulation a pour but de rendre l'utilisation du protocole TLSv1.0 par le navigateur possible, alors qu'elle a été volontairement été retiré pour des raisons de sécurité entre autres (voir [ici](https://blog.mozilla.org/security/2018/10/15/removing-old-versions-of-tls/) et [là](https://hacks.mozilla.org/2020/02/its-the-boot-for-tls-1-0-and-tls-1-1/). Par ailleurs, le mécanisme de connexion nécessite d'avoir cette page ouverte pendant toute la durée de sa session de connexion, ce qui s'avère être contraignant puisque que les navigateurs modernes ferment les onglets inutilisés.
+Cette manipulation a pour but de rendre l'utilisation du protocole TLSv1.0 par le navigateur possible, alors qu'elle a été volontairement été retiré pour des raisons de sécurité entre autres (voir [ici](https://blog.mozilla.org/security/2018/10/15/removing-old-versions-of-tls/) et [là](https://hacks.mozilla.org/2020/02/its-the-boot-for-tls-1-0-and-tls-1-1/)). Par ailleurs, le mécanisme de connexion nécessite d'avoir cette page ouverte pendant toute la durée de sa session de connexion, ce qui s'avère être contraignant puisque que les navigateurs modernes ferment les onglets inutilisés.
 
-Pour ces raison, il est difficile de trouver un moyen simple et efficace pour se connecter réseau interne. Or l'ancienneté du certificat et de la méthode de cryptage du contrôleur nous mets dans l'impossibilité de faire un programme très simple pour s'y connecter.
+Pour ces raison, il est difficile de trouver un moyen simple et efficace pour se connecter réseau interne. Or l'ancienneté du certificat et de la méthode de cryptage du contrôleur nous met dans l'impossibilité de faire un programme simple pour s'y connecter.
 
 Ainsi, nous avons créé ce logiciel, qui possède une interface graphique, pour se connecter au réseau interne de l'internat. Il suffira de le lancer et de le garder ouvert, et il se connectera automatiquement au réseau, gardant la connection active.
 
 > **Notes**
 >
 > 1. Si vous venez d'une autre école, ou chose similaire, et que vous voulez qu'on travaille pour l'adapter à votre réseau, n'hésitez pas à nous contacter, à travers une issue sur ce repo, ou un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
-> 2. L'ancienne version du script, réalisée spécifiquement pour Linux et plus simple, et toujours disponible dans le répertoir [legacy](/legacy/README.md).
+> 2. L'ancienne version du script, plus simple et réalisée spécifiquement pour Linux, est toujours disponible dans le répertoir [legacy](/legacy/README.md).
 
 ## Installation
 
