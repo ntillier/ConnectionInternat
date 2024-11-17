@@ -8,11 +8,11 @@ De plus, l'ancienneté du certificat et de la méthode de cryptage de celui-ci n
 
 Ainsi, nous avons créé ce logiciel, qui possède une interface graphique, pour se connecter au réseau interne de l'internat du Lycée du Parc. Il suffira de le lancer et de le garder ouvert, et il se connectera automatiquement au réseau, gardant la connection active.
 
-Note: si vous venez d'une autre école, ou chose similaire, et que vous voulez qu'on travaille pour l'adapter à votre réseau, n'hésitez pas à nous contacter, à travers une issue sur ce repo, ou un mail à l'adresse dans la description de @itsvyle.
+Note: si vous venez d'une autre école, ou chose similaire, et que vous voulez qu'on travaille pour l'adapter à votre réseau, n'hésitez pas à nous contacter, à travers une issue sur ce repo, ou un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
 
 ## Installation
 
-Le logiciel est pour l'instant compatible avec Linux et Windows. Le support mac est possible et pourra etre implémenté, cependant nous n'avons pas de mac pour tester et ainsi n'avons pas pu le finir - si vous avez un mac et que vous voulez utiliser l'application, n'hésitez pas à nous contacter, par un mail à l'adresse dans la description de @itsvyle.
+Le logiciel est pour l'instant compatible avec Linux et Windows. Le support mac est possible et pourra etre implémenté, cependant nous n'avons pas de mac pour tester et ainsi n'avons pas pu le finir - si vous avez un mac et que vous voulez utiliser l'application, n'hésitez pas à nous contacter, par un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
 
 ### Windows
 
@@ -47,7 +47,9 @@ Un terminal de texte s'ouvrira, et installera le programme. Une fois que le prog
 
 </details>
 
-#### <ins>Utiliser le programme</ins>
+---
+
+### <ins>Utiliser le programme sur Windows</ins>
 
 L'installeur créera des raccourcis "ConnectionInternat" pour le programme à deux endroits:
 
@@ -91,7 +93,9 @@ Un terminal de texte s'ouvrira, et installera le programme. Une fois que le prog
 
 </details>
 
-#### <ins>Utiliser le programme</ins>
+---
+
+### <ins>Utiliser le programme sur Linux</ins>
 
 Si vous avez utilisé l'installeur:
 
@@ -107,6 +111,7 @@ Pour lancer le programme, voir la section "Utiliser le programme" pour votre sys
 À tout moment, vous pouvez fermer le programme en faisant `Échap` ou `q` sur votre clavier.
 
 Une fois le programme lancé, vous verrez une fenêtre qui ressemble à ceci:
+
 ![Initial vue](./.github/assets/usage-1.png)
 
 Pour tous les menus, vous pouvez utiliser les flèches du clavier pour naviguer, et la touche `Entrée` pour valider votre choix.
