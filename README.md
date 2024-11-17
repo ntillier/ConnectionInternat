@@ -1,45 +1,50 @@
 # ConnectionInternat
 
-Ce programme a comme but de se connecter au réseau interne de l'internat du Lycée du Parc. Ce réseau est ancien, géré par [ucopia](https://ucopia.com/en/) (on doit se rendre sur le site `controller.access.network`) pour s'identifier au réseau.
+Ce programme permet de se connecter au réseau interne de l'internat du Lycée du Parc. Le [contrôleur du réseau](https://controller.access.network) étant ancien, son chiffrement obsolète et son certificat invalide, le rend incompatible avec les navigateurs les plus récents.
 
-L'ancienneté de ce réseau fait qu'il est impossible de se connecter avec un appareil récent à moins d'utiliser une vieille version d'un navigateur, qui supportera TLSv1.0. Non seulement cela, mais il faut garder la page ouverte pendant toute la durée de sa connexion, ce qui peut etre contraignant étant donné que les navigateurs modernes ferment les onglets inutilisés.
+La démarche proposée par le lycée est de télécharger la version antérieure d'un navigateur (ils proposent le navigateur Firefox version 130.0), et de positionner la variable `security.tls.version.min` dans la configuration du navigateur, avant de se rendre sur le [site](https://controller.access.network) pour se connecter.
 
-De plus, l'ancienneté du certificat et de la méthode de cryptage de celui-ci nous mets dans l'impossibilité de faire un programme très simple pour s'y connecter.
+Cette manipulation a pour but de rendre l'utilisation du protocole TLSv1.0 par le navigateur possible, alors qu'elle a été volontairement été retiré pour des raisons de sécurité entre autres (voir [ici](https://blog.mozilla.org/security/2018/10/15/removing-old-versions-of-tls/) et [là](https://hacks.mozilla.org/2020/02/its-the-boot-for-tls-1-0-and-tls-1-1/). Par ailleurs, le mécanisme de connexion nécessite d'avoir cette page ouverte pendant toute la durée de sa session de connexion, ce qui s'avère être contraignant puisque que les navigateurs modernes ferment les onglets inutilisés.
 
-Ainsi, nous avons créé ce logiciel, qui possède une interface graphique, pour se connecter au réseau interne de l'internat du Lycée du Parc. Il suffira de le lancer et de le garder ouvert, et il se connectera automatiquement au réseau, gardant la connection active.
+Pour ces raison, il est difficile de trouver un moyen simple et efficace pour se connecter réseau interne. Or l'ancienneté du certificat et de la méthode de cryptage du contrôleur nous mets dans l'impossibilité de faire un programme très simple pour s'y connecter.
 
-Note: si vous venez d'une autre école, ou chose similaire, et que vous voulez qu'on travaille pour l'adapter à votre réseau, n'hésitez pas à nous contacter, à travers une issue sur ce repo, ou un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
+Ainsi, nous avons créé ce logiciel, qui possède une interface graphique, pour se connecter au réseau interne de l'internat. Il suffira de le lancer et de le garder ouvert, et il se connectera automatiquement au réseau, gardant la connection active.
+
+> **Notes**
+>
+> 1. Si vous venez d'une autre école, ou chose similaire, et que vous voulez qu'on travaille pour l'adapter à votre réseau, n'hésitez pas à nous contacter, à travers une issue sur ce repo, ou un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
+> 2. L'ancienne version du script, réalisée spécifiquement pour Linux et plus simple, et toujours disponible dans le répertoir [legacy](/legacy/README.md).
 
 ## Installation
 
-Le logiciel est pour l'instant compatible avec Linux et Windows. Le support mac est possible et pourra etre implémenté, cependant nous n'avons pas de mac pour tester et ainsi n'avons pas pu le finir - si vous avez un mac et que vous voulez utiliser l'application, n'hésitez pas à nous contacter, par un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
+Le logiciel est pour l'instant compatible avec Linux et Windows. Le support mac est possible et pourra être implémenté, cependant nous n'avons pas de mac pour le tester et ainsi n'avons pas pu le finir - si vous avez un mac et que vous voulez utiliser l'application, n'hésitez pas à nous contacter, par un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
 
 ### Windows
 
-Requiert windows 10 ou plus récent; on ne peut pas garantir le fonctionnement sur des versions plus anciennes.
+Requiert _a priori_ windows 10 ou plus récent; on ne peut pas garantir le fonctionnement sur des versions plus anciennes.
 
 <details>
   <summary>Instructions pour télécharger sur Windows</summary>
 
 ## 1. Télécharger l'installeur
 
-Cliquer ici pour télécharger l'installeur: [installer-ConnectionInternat-windows.exe](https://github.com/ntillier/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-windows.exe)
+Cliquez ici pour télécharger l'installeur: [installer-ConnectionInternat-windows.exe](https://github.com/ntillier/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-windows.exe)
 
 ## 2. Exécuter l'installeur
 
 Ici, windows vous informera que le programme n'est pas reconnu - c'est normal, étant donné que nous ne sommes pas une entreprise reconnue par Microsoft. Cependant, vous pouvez cliquer sur "Plus d'informations" et "Exécuter quand même" (voir ci-dessous).
 
-**Attention**: vous aurez besoin d'etre connecté à internet pour que l'installeur puisse télécharger les fichiers nécessaires.
+**Attention**: vous aurez besoin d'être connecté à internet pour que l'installeur puisse télécharger le logiciel.
 
-### 1. Cliquer sur "Informations supplémentaires"
+### 1. Cliquez sur "Informations supplémentaires"
 
 ![Cliquer sur "Informations supplémentaires"](./.github/assets/windows-protect-step-1.png)
 
-### 2. Cliquer sur "Exécuter quand même"
+### 2. Cliquez sur "Exécuter quand même"
 
-![Cliquer sur "Exécuter quand même"](./.github/assets/windows-protect-step-2.png)
+![Cliquez sur "Exécuter quand même"](./.github/assets/windows-protect-step-2.png)
 
-Pour ce qui de la sécurité de l'installeur et du programme, vous pouvez consulter le code source, qui est ouvert et disponible sur ce repo; les fichiers générés sont créés par github directement à partir du code source, et sont donc sûrs.
+Pour ce qui est de la sécurité de l'installeur et du programme, vous pouvez consulter le code source, qui est ouvert et disponible sur ce repo; les fichiers générés sont créés par github directement à partir du code source, et sont donc sûrs.
 
 ## 3. Attendre que l'installation se fasse
 
@@ -64,12 +69,12 @@ Une fenêtre s'ouvrira, dans un terminal; elle doit rester ouverte en permanence
 
 ### Linux
 
-Fonctionne normalement sur n'importe quelle distribution linux, ne requiert aucune dépendance spécifique.
+Fonctionne normalement sur n'importe quelle distribution Linux, ne requiert aucune dépendance spécifique.
 
 <details>
   <summary>Instructions pour télécharger sur Linux</summary>
 
-Sur linux, vous avez plus le choix: vous pouvez utiliser l'installeur, ou télécharger directement les fichiers et les exécuter, depuis la [page releases](https://github.com/ntillier/ConnectionInternat/releases/latest/). Si vous utilisez cette dernière méthode, faites attention à bien garder l'éxécutable backend (`ConnectionInternat-backend.exe`) dans le meme dossier que l'éxécutable frontend (`ConnectionInternat`).
+Sur linux, vous avez plus de choix: vous pouvez utiliser l'installeur, ou télécharger directement les fichiers et les exécuter, depuis la [page releases](https://github.com/ntillier/ConnectionInternat/releases/latest/). Si vous utilisez cette dernière méthode, faites attention à bien garder l'éxécutable backend (`ConnectionInternat-backend.exe`) dans le même dossier que l'exécutable frontend (`ConnectionInternat`).
 
 Pour utiliser l'installeur (recommandé), suivez les instructions ci-dessous.
 
