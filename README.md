@@ -116,6 +116,8 @@ Une fois le programme lancé, vous verrez une fenêtre qui ressemble à ceci:
 
 Pour tous les menus, vous pouvez utiliser les flèches du clavier pour naviguer, et la touche `Entrée` pour valider votre choix.
 
+---
+
 ### Se connecter
 
 Pour se connecter la première fois, il suffira de choisir "Rentrer ses identifiants", puis de:
@@ -127,9 +129,13 @@ Pour se connecter la première fois, il suffira de choisir "Rentrer ses identifi
 
 Les identifiants seront sauvegardés, et vous n'aurez plus à les rentrer à chaque fois (pour les nerds: ils sont sauvegardés dans `~/.internat-connection.txt`)
 
+---
+
 ### Se déconnecter
 
 Avant de vous déconnecter du réseau ethernet, il est recommandé de se déconnecter manuellement: cela est possible en cliquant sur le boutton du menu, ou en appuyant sur `Échap` ou `q` sur votre clavier.
+
+---
 
 ### Se reconnecter
 
