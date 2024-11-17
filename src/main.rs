@@ -221,15 +221,22 @@ impl App {
             None => "".to_string(),
         };
 
-        let status_text = Text::from(vec![
+        let mut lines = vec![
             Line::from(format!("Statut: {}", status)),
             Line::from(format!(
                 "Dernier login: {}",
                 self.lastLogin.as_ref().unwrap_or(&"N/A".to_string())
             )),
             Line::from(format!("Dernier ping: {}", last_ping)),
-            Line::from(error),
-        ]);
+        ];
+
+        if !error.is_empty() {
+            for line in error.lines() {
+                lines.push(Line::styled(line, Style::default().fg(Color::Red)));
+            }
+        }
+
+        let status_text = Text::from(lines);
         let status_paragraph = Paragraph::new(status_text)
             .alignment(Alignment::Center)
             .wrap(Wrap { trim: true });
@@ -613,7 +620,7 @@ impl App {
             Err(output) => {
                 self.connectionStatus = ConnectionStatus::Disconnected;
                 self.refresh_status_menu();
-                self.lastError = Some(output);
+                self.lastError = Some(clarify_connection_error(output));
             }
         }
     }
@@ -636,7 +643,7 @@ impl App {
             Err(output) => {
                 self.connectionStatus = ConnectionStatus::Disconnected;
                 self.refresh_status_menu();
-                self.lastError = Some(output);
+                self.lastError = Some(clarify_connection_error(output));
             }
         }
     }
@@ -675,4 +682,21 @@ fn seconds_since(ts: Option<DateTime<Local>>) -> Option<i64> {
     let now = Local::now();
     let duration = now.signed_duration_since(ts.unwrap());
     Some(duration.num_seconds())
+}
+
+fn clarify_connection_error(err: String) -> String {
+    let con = |description: &str| {
+        format!(
+            "{}\n\nErreur retournée par le serveur: {}",
+            description, err
+        )
+    };
+    if err.contains("404") {
+        return con(
+            "Incapable de trouver le serveur: vérifiez que vous etes connecté au bon réseau",
+        );
+    } else if err.contains("DNS") {
+        return con("Erreur de résolution DNS: vérifiez que vous etes connecté au bon réseau, et que vous n'avez pas de VPN allumé");
+    }
+    return err;
 }
