@@ -60,6 +60,8 @@ Vous pouvez lancer le programme en cliquant sur un de ces raccourcis.
 
 Une fenêtre s'ouvrira, dans un terminal; elle doit rester ouverte en permanence pour que le programme fonctionne. Vous pouvez la minimiser, mais ne la fermez pas.
 
+---
+
 ### Linux
 
 Fonctionne normalement sur n'importe quelle distribution linux, ne requiert aucune dépendance spécifique.
@@ -103,6 +105,8 @@ Si vous avez utilisé l'installeur:
 - Un racourci (symlink) sera créé dans `~/ConnectionInternat`, qui vous permettra de lancer le programme simplement en tapant `~/ConnectionInternat` dans un terminal.
 
 Sinon, éxécutez le programme `ConnectionInternat` depuis le dossier où vous avez téléchargé les fichiers.
+
+---
 
 ## Utilisation
 
