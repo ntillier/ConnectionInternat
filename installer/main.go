@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if runningOS == "darwin" {
-		panic("L'application n'est pas supportée sur mac pour l'instant, meme si elle devrait etre facile à implémenter - merci de contacter les créateurs")
+		crashProgram("L'application n'est pas supportée sur mac pour l'instant, meme si elle devrait etre facile à implémenter - merci de contacter les créateurs")
 	}
 
 	latestVersion := os.Getenv("PROGRAM_VERSION")
@@ -39,7 +39,7 @@ func main() {
 		latestVersion, err = getLatestVersion()
 		if err != nil {
 			fmt.Println(err)
-			panic("Error getting latest version")
+			crashProgram("Error getting latest version")
 		}
 	} else {
 		fmt.Println("Version spécifiée par l'environnement: ", latestVersion)
@@ -61,18 +61,18 @@ func main() {
 	if runningOS == "linux" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			panic("Couldn't find user home directory!")
+			crashProgram("Couldn't find user home directory!")
 		}
 		installLocation = filepath.Join(homeDir, ".local", ProgramName)
 	} else if runningOS == "windows" {
 		localAppData, ok := os.LookupEnv("LOCALAPPDATA")
 		if !ok {
 			fmt.Println("LOCALAPPDATA environment variable not found")
-			panic("Couldn't find LOCALAPPDATA environment variable")
+			crashProgram("Couldn't find LOCALAPPDATA environment variable")
 		}
 		installLocation = filepath.Join(localAppData, ProgramName)
 	} else {
-		panic("unknown OS: " + runningOS)
+		crashProgram("unknown OS: " + runningOS)
 	}
 
 	installURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", RepoPath, latestVersion, f)
@@ -87,7 +87,7 @@ func main() {
 	tempDir, err := downloadArchive(installURL)
 	if err != nil {
 		fmt.Println("error downloading archive: ", err)
-		panic("couldn't download archive")
+		crashProgram("couldn't download archive")
 	}
 
 	fmt.Printf("Téléchargé et extrait dans %s\n", tempDir)
@@ -102,13 +102,13 @@ func main() {
 
 	tempDir = filepath.Join(tempDir, f)
 	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
-		panic(fmt.Sprintf("coudn't find the correct directory in, it does not exist %s", tempDir))
+		crashProgram(fmt.Sprintf("coudn't find the correct directory in, it does not exist %s", tempDir))
 	}
 
 	err = MoveFolder(tempDir, installLocation, true)
 	if err != nil {
 		fmt.Println(err)
-		panic(fmt.Sprintf("couldn't copy files from %s to %s", tempDir, installLocation))
+		crashProgram(fmt.Sprintf("couldn't copy files from %s to %s", tempDir, installLocation))
 	}
 
 	fmt.Println("En train de supprimer le dossier temporaire")
@@ -239,4 +239,14 @@ func printClearError(e string) {
 	fmt.Println("")
 	fmt.Println("----------------------------------------------------------------------------------------------------------------------------")
 	fmt.Println("")
+}
+
+func crashProgram(err string) {
+	if runtime.GOOS == "linux" {
+		panic(err)
+		return
+	}
+	fmt.Printf("Fatal error: %s\n", err)
+	waitForEnter()
+	panic("fatal error")
 }
