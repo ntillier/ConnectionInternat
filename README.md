@@ -1,6 +1,6 @@
 # ConnectionInternat
 
-Ce programme permet de se connecter au réseau interne de l'internat du Lycée du Parc. Le [contrôleur du réseau](https://controller.access.network) étant ancien, son chiffrement obsolète et son certificat invalide, le rend incompatible avec les navigateurs les plus récents.
+Ce programme permet de se connecter au réseau interne de l'internat du Lycée du Parc. Le [contrôleur du réseau](https://controller.access.network) étant ancien, son chiffrement obsolète et son certificat invalide, il est incompatible avec les navigateurs les plus récents.
 
 La démarche proposée par le lycée est de télécharger la version antérieure d'un navigateur (ils proposent le navigateur Firefox version 130.0), et de positionner la variable `security.tls.version.min` dans la configuration du navigateur, avant de se rendre sur le [site](https://controller.access.network) pour se connecter.
 
