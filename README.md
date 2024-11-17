@@ -60,10 +60,13 @@ L'installeur créera des raccourcis "ConnectionInternat" pour le programme à de
 
 - Sur le bureau
 - Dans le menu démarrer
+- Dans le dossier `%LocalAppData%\ConnectionInternat`
 
 Vous pouvez lancer le programme en cliquant sur un de ces raccourcis.
 
 Une fenêtre s'ouvrira, dans un terminal; elle doit rester ouverte en permanence pour que le programme fonctionne. Vous pouvez la minimiser, mais ne la fermez pas.
+
+Note: Si les raccourcis n'ont pas été correctement créés, vous pouvez créér un raccourci sur votre bureau en faisant un clic droit sur le bureau, puis "Nouveau" -> "Raccourci", et en entrant le chemin vers l'exécutable du programme, qui est normalement dans `%LocalAppData%\ConnectionInternat\ConnectionInternat.bat`.
 
 ---
 
