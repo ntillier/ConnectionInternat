@@ -668,6 +668,12 @@ impl App {
 }
 
 fn main() -> io::Result<()> {
+    let _ = Command::new("tmux")
+        .arg("rename-window")
+        .arg("ConnectionInternat")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
     let mut terminal = ratatui::init();
     terminal.clear()?;
     let app_result = App::new().run(terminal);
