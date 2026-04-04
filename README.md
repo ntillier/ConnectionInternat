@@ -13,7 +13,7 @@ Ainsi, nous avons créé ce logiciel, qui possède une interface graphique, pour
 > **Notes**
 >
 > 1. Si vous venez d'une autre école, ou chose similaire, et que vous voulez qu'on travaille pour l'adapter à votre réseau, n'hésitez pas à nous contacter, à travers une issue sur ce repo, ou un mail à l'adresse dans la description de [@itsvyle](https://github.com/itsvyle).
-> 2. L'ancienne version du script, plus simple et réalisée spécifiquement pour Linux, est toujours disponible dans le répertoir [legacy](/legacy/README.md).
+> 2. L'ancienne version du script, plus simple et réalisée spécifiquement pour Linux, est toujours disponible dans le répertoire [legacy](/legacy/README.md).
 
 ## Installation
 
@@ -56,7 +56,7 @@ Un terminal de texte s'ouvrira, et installera le programme. Une fois que le prog
 
 ### <ins>Utiliser le programme sur Windows</ins>
 
-L'installeur créera des raccourcis "ConnectionInternat" pour le programme à deux endroits:
+L'installeur créera des raccourcis "ConnectionInternat" pour le programme à trois endroits:
 
 - Sur le bureau
 - Dans le menu démarrer
@@ -112,7 +112,7 @@ Si vous avez utilisé l'installeur:
 - Le proramme sera installé dans le dossier `~/.local/ConnectionInternat`.
 - Un racourci (symlink) sera créé dans `~/ConnectionInternat`, qui vous permettra de lancer le programme simplement en tapant `~/ConnectionInternat` dans un terminal.
 
-Sinon, éxécutez le programme `ConnectionInternat` depuis le dossier où vous avez téléchargé les fichiers.
+Sinon, exécutez le programme `ConnectionInternat` depuis le dossier où vous avez téléchargé les fichiers.
 
 ---
 
