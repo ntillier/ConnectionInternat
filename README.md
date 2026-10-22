@@ -28,7 +28,7 @@ Requiert _a priori_ windows 10 ou plus récent; on ne peut pas garantir le fonct
 
 ## 1. Télécharger l'installeur
 
-Cliquez ici pour télécharger l'installeur: [installer-ConnectionInternat-windows.exe](https://github.com/ntillier/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-windows.exe)
+Cliquez ici pour télécharger l'installeur: [installer-ConnectionInternat-windows.exe](https://github.com/lutrinos/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-windows.exe)
 
 ## 2. Exécuter l'installeur
 
@@ -77,7 +77,7 @@ Fonctionne normalement sur n'importe quelle distribution Linux, ne requiert aucu
 <details>
   <summary>Instructions pour télécharger sur Linux</summary>
 
-Sur linux, vous avez plus de choix: vous pouvez utiliser l'installeur, ou télécharger directement les fichiers et les exécuter, depuis la [page releases](https://github.com/ntillier/ConnectionInternat/releases/latest/). Si vous utilisez cette dernière méthode, faites attention à bien garder l'éxécutable backend (`ConnectionInternat-backend.exe`) dans le même dossier que l'exécutable frontend (`ConnectionInternat`).
+Sur linux, vous avez plus de choix: vous pouvez utiliser l'installeur, ou télécharger directement les fichiers et les exécuter, depuis la [page releases](https://github.com/lutrinos/ConnectionInternat/releases/latest/). Si vous utilisez cette dernière méthode, faites attention à bien garder l'éxécutable backend (`ConnectionInternat-backend.exe`) dans le même dossier que l'exécutable frontend (`ConnectionInternat`).
 
 Pour utiliser l'installeur (recommandé), suivez les instructions ci-dessous.
 
@@ -85,8 +85,8 @@ Pour utiliser l'installeur (recommandé), suivez les instructions ci-dessous.
 
 Téléchargez l'installeur en cliquant sur le lien ci-dessous:
 
-- Pour Linux 64 bits sur x86: [installer-ConnectionInternat-linux-amd64](https://github.com/ntillier/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-linux-amd64)
-- Pour Linux 64 bits sur arm: [installer-ConnectionInternat-linux-arm64](https://github.com/ntillier/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-linux-arm64)
+- Pour Linux 64 bits sur x86: [installer-ConnectionInternat-linux-amd64](https://github.com/lutrinos/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-linux-amd64)
+- Pour Linux 64 bits sur arm: [installer-ConnectionInternat-linux-arm64](https://github.com/lutrinos/ConnectionInternat/releases/latest/download/installer-ConnectionInternat-linux-arm64)
 
 ## 2. Exécuter l'installeur
 

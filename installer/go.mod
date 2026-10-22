@@ -1,4 +1,4 @@
-module github.com/ntillier/ConnectionInternat/installer
+module github.com/lutrinos/ConnectionInternat/installer
 
 go 1.23.2
 

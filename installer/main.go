@@ -12,7 +12,7 @@ import (
 	"runtime"
 )
 
-const RepoPath = "ntillier/ConnectionInternat"
+const RepoPath = "lutrinos/ConnectionInternat"
 const ProgramName = "ConnectionInternat"
 
 // const RepoPath = "sharkdp/bat"
